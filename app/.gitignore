@@ -1,0 +1,41 @@
+# Python-related
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg
+
+# SQLite Database files
+*.db
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Flask specific
+instance/
+.webassets-cache
+
+# IDE files
+.vscode/
+.idea/

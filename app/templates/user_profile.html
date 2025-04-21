@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - HotelBooking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #e0f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .welcome-box {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        .welcome-box h2 {
+            margin-bottom: 20px;
+            color: #00796b;
+        }
+
+        .welcome-box p {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .welcome-box .role {
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .bookings {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .booking-item {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .booking-item:last-child {
+            border-bottom: none;
+        }
+
+        .booking-details {
+            flex: 1;
+        }
+
+        .booking-details p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .booking-actions a {
+            margin-left: 5px;
+            padding: 5px 10px;
+            background-color: #00796b;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85em;
+        }
+
+        .booking-actions a:hover {
+            background-color: #004d40;
+        }
+
+        .booking-actions .delete {
+            background-color: #d32f2f;
+        }
+
+        .booking-actions .delete:hover {
+            background-color: #b71c1c;
+        }
+
+        .welcome-box .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .welcome-box .btn:hover {
+            background-color: #004d40;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #777;
+        }
+
+        @media (max-width: 768px) {
+            .welcome-box {
+                width: 90%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-box">
+        <h2>Welcome back, {{ username }}!</h2>
+        <p class="role">Hotel Guest</p>
+        <div class="bookings">
+            <h3>Your Bookings</h3>
+            <div class="booking-item">
+                <div class="booking-details">
+                    <p>Booking #101: Deluxe Room</p>
+                    <p>Check-in: Apr 15, 2025 | Check-out: Apr 18, 2025</p>
+                </div>
+                <div class="booking-actions">
+                    <a href="view_booking.html" class="view">View</a>
+                    <a href="update_booking.html" class="update">Update</a>
+                    <a href="delete_booking.html" class="delete">Delete</a>
+                </div>
+            </div>
+            <div class="booking-item">
+                <div class="booking-details">
+                    <p>Booking #102: Suite Room</p>
+                    <p>Check-in: May 01, 2025 | Check-out: May 03, 2025</p>
+                </div>
+                <div class="booking-actions">
+                    <a href="view_booking.html" class="view">View</a>
+                    <a href="update_booking.html" class="update">Update</a>
+                    <a href="delete_booking.html" class="delete">Delete</a>
+                </div>
+            </div>
+        </div>
+        <a href="new_booking.html" class="btn">New Booking</a>
+        <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
+        <div class="footer">HotelBooking - Room Reservation Portal</div>
+    </div>
+</body>
+</html>
