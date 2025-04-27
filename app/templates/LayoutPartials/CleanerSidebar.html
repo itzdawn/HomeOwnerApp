@@ -1,0 +1,52 @@
+<!-- Sidebar Logo -->
+<div class="logo mb-3">
+    <img src="../../static/images/logo.png" alt="Company Logo">
+</div>
+
+<!-- Sidebar Menu -->
+<div class="sidebar-menu">
+    <ul class="nav flex-column">
+        <!-- Service Management Section -->
+        <li class="nav-item">
+            <a href="#serviceManagementSubmenu" class="nav-link" data-bs-toggle="collapse" aria-expanded="true">
+                <i class="bi bi-tools"></i>
+                <span>Service Management</span>
+                <i class="bi bi-caret-down-fill ms-auto"></i>
+            </a>
+            <div class="collapse show" id="serviceManagementSubmenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link sidebar-menu-item active" data-target="services">
+                            <i class="bi bi-box-seam"></i>
+                            <span>My Services</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<!-- Sidebar Style Overrides -->
+<style>
+    .sidebar-footer {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    .sidebar-menu .nav-link {
+        padding: 8px 15px;
+        display: flex;
+        align-items: center;
+    }
+    .sidebar-menu .nav-link i:first-child {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+    }
+    .sidebar-menu .nav-link i.ms-auto {
+        font-size: 10px;
+    }
+    .sidebar-menu {
+        margin-bottom: 80px; /* Space for footer */
+    }
+</style>

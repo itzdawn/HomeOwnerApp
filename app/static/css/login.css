@@ -1,0 +1,82 @@
+/* Login Page CSS */
+body, html {
+    height: 100%;
+}
+
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* Add background image */
+    background-image: url('../images/login-background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* Keep the gradient as fallback */
+    background-color: #f0f2f5;
+}
+
+/* Add overlay to make text more readable if needed */
+.login-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.4); /* Dark overlay with 40% opacity */
+    z-index: 1;
+}
+
+/* Ensure login card is above the overlay */
+.login-card {
+    position: relative;
+    z-index: 2;
+    border-radius: 6px;
+    background: #ffffff;
+    width: 100%;
+    padding: 25px 25px 5px 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.title {
+    margin: 0px auto 30px auto;
+    text-align: center;
+    color: #707070;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.login-code {
+    height: 38px;
+    width: 100%;
+}
+
+.login-code-img {
+    height: 38px;
+    width: 100%;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.input-group-text {
+    background-color: #f5f5f5;
+}
+
+.btn-primary {
+    background-color: #409eff;
+    border-color: #409eff;
+}
+
+.btn-primary:hover {
+    background-color: #337ecc;
+    border-color: #337ecc;
+}
+
+/* Add responsive adjustments for background image */
+@media (max-width: 768px) {
+    .login-page {
+        background-position: center center;
+    }
+} 
