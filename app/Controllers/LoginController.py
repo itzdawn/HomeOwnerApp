@@ -1,4 +1,4 @@
-from Entities.user import User
+from app.Entities.user import User
 
 class LoginAuthController():
     def __init__(self):

@@ -1,7 +1,7 @@
 from flask import *
 from app.Controllers.LoginController import LoginAuthController
 
-# Create Blueprint
+
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['POST'])

@@ -2,7 +2,7 @@ import sqlite3
 
 DATABASE = 'data/app.db'
 
-class User():
+class User:
     def __init__(self, username=None, password=None, role=None, status=None, id=None):
         self.__id = id
         self.username = username

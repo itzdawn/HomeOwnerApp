@@ -1,6 +1,5 @@
 """
 This file uses faker library to generate fake info and populate app.db
-
 """
 
 import sqlite3
@@ -8,7 +7,6 @@ from faker import Faker
 import random
 
 fake = Faker("en_MS") #Basically malaysian locale because there's no sg.
-
 DATABASE = 'data/app.db'
 ENTRIES = 100 #Number of fake entries generated
 
@@ -93,7 +91,7 @@ def viewTable():
     print(f"Total Users: {count}")
     conn.close()
     
-    
+         
 if __name__ == '__main__':
     # dropUserTable()
     # generateAndInsert(ENTRIES)

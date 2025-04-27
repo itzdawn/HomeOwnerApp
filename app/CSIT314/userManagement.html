@@ -1,0 +1,86 @@
+
+            </section>
+        </main>
+    </div>
+
+    <!-- User Form Modal -->
+    <div class="modal" id="userFormModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add User</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId" value="">
+                    
+                    <div class="form-group">
+                        <label for="formUsername">Username</label>
+                        <input type="text" id="formUsername" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formNickname">Nickname</label>
+                        <input type="text" id="formNickname" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formPhone">Phone Number</label>
+                        <input type="text" id="formPhone" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formEmail">Email</label>
+                        <input type="email" id="formEmail" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formPassword">Password</label>
+                        <input type="password" id="formPassword" class="form-control">
+                        <small class="form-hint">Leave blank to keep current password (when editing)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formStatus">Status</label>
+                        <select id="formStatus" class="form-control" required>
+                            <option value="0">Active</option>
+                            <option value="1">Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formRole">Role</label>
+                        <select id="formRole" class="form-control" required>
+                            <option value="1">Administrator</option>
+                            <option value="2">User</option>
+                            <option value="3">Guest</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" id="cancelUserForm">Cancel</button>
+                <button class="btn btn-save" id="saveUserForm">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmation</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" id="cancelConfirmation">Cancel</button>
+                <button class="btn btn-confirm" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/user-management.js"></script>
