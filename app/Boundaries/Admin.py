@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from app.Controllers.CreateUserController import CreateUserController
-from app.Controllers.GetAllUsersController import GetAllUsersController
+from app.Controllers.Admin_related.CreateUser import CreateUserController
+from app.Controllers.Admin_related.GetAllUsers import GetAllUsersController
 
 admin_bp = Blueprint('admin', __name__)
 
