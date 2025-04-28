@@ -25,8 +25,56 @@ class Service:
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO services (id, userId, name, description, category, price, shortlists, views, creationDate)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (self.getId, self.getUserId, self.name, self.description, self.price, self.category, self.views, self.shortlists, self.creationDate))
+            INSERT INTO service (cleaner_id, name, description, category, price, shortlists, views, creation_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (self.getUserId, self.name, self.description, self.category, self.price, self.shortlists, self.views, self.creationDate))
         conn.commit()
         conn.close()
+    
+    #retrieve service info by cleanerId from db
+    @staticmethod
+    def getServiceByUser(userId):
+        conn = sqlite3.connect('data/app.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM user WHERE cleaner_id = ?", (userId,))
+        results = cursor.fetchall() #list of service tuples
+        conn.close()
+        
+        services = []
+        for result in results:
+            services.append(Service(
+                id=result[0],
+                userId=result[1],
+                name=result[2],
+                description=result[3],
+                category=result[4],
+                price=result[5],
+                shortlists=result[6],
+                views=result[7],
+                creationDate=result[8]
+            ))
+        return services
+    
+    #retrieve service info by service id from db
+    @staticmethod
+    def getServiceByUser(serviceId):
+        conn = sqlite3.connect('data/app.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM user WHERE id = ?", (serviceId,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            return Service(
+                id=result[0],
+                userId=result[1],
+                name=result[2],
+                description=result[3],
+                category=result[4],
+                price=result[5],
+                shortlists=result[6],
+                views=result[7],
+                creationDate=result[8]
+            )
+        else:
+            return None

@@ -24,7 +24,7 @@ def createUserTables():
         password TEXT NOT NULL,
         role TEXT NOT NULL,
         status INTEGER
-        )""")
+    )""")
     
     conn.commit()
     conn.close()
