@@ -133,7 +133,12 @@ iframe {
 }
 
 .sidebar-menu {
-    margin-bottom: 20px;
+    margin-bottom: 80px; /* Space for footer - increased from 20px to 80px for consistency */
+}
+
+.sidebar-footer {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 /* Tab Navigation Styles */
@@ -148,4 +153,23 @@ iframe {
 
 .nav-tabs .nav-link.active {
     font-weight: 500;
+}
+
+/* Navbar specific styles moved from Navbar.html */
+.navbar-light .navbar-nav .nav-link {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.text-dark {
+    color: #212529 !important;
+}
+
+/* Iframe styles moved from index pages */
+#user-account-frame, 
+#user-profile-frame,
+#service-mgnt-frame {
+    width: 100%;
+    height: calc(100vh - 150px);
+    border: none;
+    overflow: hidden;
 } 

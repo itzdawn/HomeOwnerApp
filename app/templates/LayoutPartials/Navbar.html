@@ -20,7 +20,8 @@
 
 <!-- Navbar Script for Dynamic Role and Title -->
 <script>
-    $(document).ready(function() {
+    // Function to update navbar based on user role
+    function updateNavbarBasedOnRole() {
         // Get role from localStorage
         const userRole = localStorage.getItem('userRole') || 'admin';
         
@@ -42,20 +43,41 @@
             systemTitle = 'Platform Management System';
         }
         
-        // Update the UI
-        $('#user-role-display').text(roleDisplayName);
-        $('#system-title').text(systemTitle);
-    });
-</script>
-
-<!-- Additional Navbar Styles -->
-<style>
-    /* Make sure the text in the navbar is visible */
-    .navbar-light .navbar-nav .nav-link {
-        color: rgba(0, 0, 0, 0.7);
+        // Find the elements to update
+        const userRoleElement = document.getElementById('user-role-display');
+        const systemTitleElement = document.getElementById('system-title');
+        
+        // Update elements if they exist
+        if (userRoleElement) userRoleElement.textContent = roleDisplayName;
+        if (systemTitleElement) systemTitleElement.textContent = systemTitle;
     }
     
-    .text-dark {
-        color: #212529 !important;
-    }
-</style> 
+    // Use both jQuery's ready and window.onload for maximum reliability
+    $(document).ready(function() {
+        // Try to update immediately
+        updateNavbarBasedOnRole();
+        
+        // Also try again after a short delay to ensure DOM is fully loaded
+        setTimeout(updateNavbarBasedOnRole, 100);
+    });
+    
+    // Fallback for when dynamically loaded
+    window.addEventListener('load', updateNavbarBasedOnRole);
+    
+    // Set up a MutationObserver as a final fallback to detect when elements are added
+    // This ensures the navbar updates even if it's loaded after this script runs
+    const observer = new MutationObserver(function(mutations) {
+        const userRoleElement = document.getElementById('user-role-display');
+        const systemTitleElement = document.getElementById('system-title');
+        
+        if (userRoleElement && systemTitleElement) {
+            updateNavbarBasedOnRole();
+            observer.disconnect(); // Stop observing once elements are found and updated
+        }
+    });
+    
+    // Start observing when DOM is ready
+    $(document).ready(function() {
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+</script> 
