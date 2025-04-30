@@ -37,8 +37,7 @@
                         Username or password is incorrect
                     </div>
                     
-                    <!-- For development: action="#" bypasses backend authentication -->
-                    <form id="loginForm" action="#" method="POST" autocomplete="off">
+                    <form id="loginForm" action="/auth/login" method="POST" autocomplete="off">
                         <!-- Username field -->
                         <div class="mb-3">
                             <div class="input-group">
@@ -124,10 +123,7 @@
                             </button>
                         </div>
                         
-                        <!-- Register Link (hidden by default) -->
-                        <div class="text-end d-none" id="registerLinkDiv">
-                            <a href="/auth/register" class="link-primary">Register Now</a>
-                        </div>
+                    
                     </form>
                 </div><!-- /.login-card -->
             </div>
@@ -137,38 +133,68 @@
 
 <!-- Login Script -->
 <script>
-    // Temporary login functionality for development (no backend authentication)
     $(document).ready(function() {
-        // Override form submission
+        // Handle login form submission
         $('#loginForm').on('submit', function(e) {
             e.preventDefault();
             
             // Show loading state
             $('#loginBtn').addClass('d-none');
             $('#loadingBtn').removeClass('d-none');
+            $('#errorAlert').addClass('d-none');
             
-            // Get the selected role
-            const role = $('#role').val();
+            // Get form data
+            const formData = {
+                username: $('#username').val(),
+                password: $('#password').val(),
+                role: $('#role').val()
+            };
             
-            // Store user role in localStorage for session persistence
-            localStorage.setItem('userRole', role);
-            
-            // Simulate loading (in a real app, this would be the API call)
-            setTimeout(function() {
-                // Redirect based on role
-                if (role === 'cleaner') {
-                    window.location.href = '../LayoutIndex/CleanerIndex.html?role=' + role;
-                } else {
-                    window.location.href = '../LayoutIndex/AdminIndex.html?role=' + role;
+            // Send login request to backend
+            $.ajax({
+                type: 'POST',
+                url: '/auth/login',
+                data: formData,
+                success: function(response) {
+                    // Store user role for session persistence
+                    localStorage.setItem('userRole', response.role);
+                    localStorage.setItem('username', response.username);
+                    
+                    // Handle different roles based on backend response
+                    const role = response.role.toLowerCase();
+                    
+                    if (role === 'admin') {
+                        window.location.href = '../LayoutIndex/AdminIndex.html';
+                    } else if (role === 'cleaner') {
+                        window.location.href = '../LayoutIndex/CleanerIndex.html';
+                    } else if (role === 'homeowner') {
+                        window.location.href = '../LayoutIndex/HomeownerIndex.html';
+                    } else if (role === 'platform') {
+                        window.location.href = '../LayoutIndex/PlatformIndex.html';
+                    } else {
+                        // Default dashboard for any other roles
+                        window.location.href = '../LayoutIndex/Dashboard.html';
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Display error message
+                    let errorMessage = "Login failed. Please try again.";
+                    if (xhr.responseJSON) {
+                        if (xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON.status === 'error') {
+                            errorMessage = "Authentication failed. Please check your credentials.";
+                        }
+                    }
+                    $('#errorAlert').text(errorMessage).removeClass('d-none');
+                    
+                    // Hide loading button, show login button
+                    $('#loadingBtn').addClass('d-none');
+                    $('#loginBtn').removeClass('d-none');
                 }
-            }, 1000);
+            });
         });
     });
-</script>
-
-<!-- Authentication Backend Implementation(for development) -->
-<script>
-
 </script>
 
 </body>
