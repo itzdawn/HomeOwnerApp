@@ -6,6 +6,7 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    
     data = request.form
     username = data.get('username')
     password = data.get('password')
@@ -17,9 +18,12 @@ def login():
     if result is None:
         return jsonify({"message": "Unexpected error during login", "status": "error"}), 500
     
+    
     if result[1] == 200:  # login success
         user_role = result[0].get("role", "").lower()
         
+        session['userRole'] = user_role #store user role in session to match the role of the user
+
         # Check if the requested role matches the actual user role from database
         if role and user_role and role != user_role:
             return jsonify({"message": f"Access denied. You do not have {role} privileges.", "status": "error"}), 403

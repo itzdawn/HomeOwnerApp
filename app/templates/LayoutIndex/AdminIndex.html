@@ -51,12 +51,12 @@
                     <div class="tab-content pt-3" id="contentTabsContent">
                         <!-- User Accounts Tab -->
                         <div class="tab-pane fade show active" id="user-accounts-content" role="tabpanel" aria-labelledby="user-accounts-tab">
-                            <iframe src="../UserAdminPage/user-account.html" id="user-account-frame" title="User Accounts" scrolling="no"></iframe>
+                            <iframe src="/admin/user-accounts" id="user-account-frame" title="User Accounts" scrolling="no"></iframe>
                         </div>
                         
                         <!-- User Profiles Tab -->
                         <div class="tab-pane fade" id="user-profiles-content" role="tabpanel" aria-labelledby="user-profiles-tab">
-                            <iframe src="../UserAdminPage/user-profile.html" id="user-profile-frame" title="User Profiles" scrolling="no"></iframe>
+                            <iframe src="/admin/user-profiles" id="user-profile-frame" title="User Profiles" scrolling="no"></iframe>
                         </div>
                     </div>
                 </div>
@@ -77,22 +77,22 @@
         // Load partials using jQuery
         $(document).ready(function() {
             // Load navbar and sidebar with improved error handling
-            $("#navbar-placeholder").load("../LayoutPartials/Navbar.html", function(response, status) {
+            $("#navbar-placeholder").load("/partials/navbar", function(response, status) {
                 if (status === "error") {
                     console.error("Failed to load Navbar. Retrying...");
                     // Retry once after short delay
                     setTimeout(function() {
-                        $("#navbar-placeholder").load("../LayoutPartials/Navbar.html");
+                        $("#navbar-placeholder").load("/partials/navbar");
                     }, 500);
                 }
             });
             
-            $("#sidebar-placeholder").load("../LayoutPartials/AdminSidebar.html", function(response, status) {
+            $("#sidebar-placeholder").load("/partials/sidebar", function(response, status) {
                 if (status === "error") {
                     console.error("Failed to load Sidebar. Retrying...");
                     // Retry once after short delay
                     setTimeout(function() {
-                        $("#sidebar-placeholder").load("../LayoutPartials/AdminSidebar.html");
+                        $("#sidebar-placeholder").load("/partials/sidebar");
                     }, 500);
                 }
             });

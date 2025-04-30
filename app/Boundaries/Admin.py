@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 from app.Controllers.Admin_related.CreateUser import CreateUserController
 from app.Controllers.Admin_related.GetAllUsers import GetAllUsersController
 
@@ -22,6 +22,18 @@ def getAllUsers():
     controller = GetAllUsersController()
     users = controller.getAllUsers()
     return jsonify(users)
+
+@admin_bp.route('/dashboard', methods=['GET'])
+def dashboard():
+    return render_template('LayoutIndex/AdminIndex.html')
+
+@admin_bp.route('/user-accounts', methods=['GET'])
+def user_accounts():
+    return render_template('UserAdminPage/user-account.html')
+
+@admin_bp.route('/user-profiles', methods=['GET'])
+def user_profiles():
+    return render_template('UserAdminPage/user-profile.html')
 
 @admin_bp.route('/update-users', methods=['POST'])
 def updateUser():

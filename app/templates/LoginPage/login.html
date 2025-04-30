@@ -80,10 +80,10 @@
                         <div class="mb-3">
                             <select class="form-select" id="role" name="role" required>
                                 <option value="" disabled>Select Role</option>
-                                <option value="admin" selected>Administrator</option>
-                                <option value="cleaner">Cleaner</option>
-                                <option value="homeowner">Home Owner</option>
-                                <option value="platform">Platform Management</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Cleaner">Cleaner</option>
+                                <option value="HomeOwner">Home Owner</option>
+                                <option value="PlatformManagement">Platform Management</option>
                             </select>
                             <div class="invalid-feedback">Please select a role</div>
                         </div>
@@ -164,16 +164,14 @@
                     const role = response.role.toLowerCase();
                     
                     if (role === 'admin') {
-                        window.location.href = '../LayoutIndex/AdminIndex.html';
+                        window.location.href = '/admin/dashboard';
                     } else if (role === 'cleaner') {
-                        window.location.href = '../LayoutIndex/CleanerIndex.html';
+                        window.location.href = '/cleaner/dashboard';
                     } else if (role === 'homeowner') {
-                        window.location.href = '../LayoutIndex/HomeownerIndex.html';
+                        window.location.href = '/homeowner/dashboard';
                     } else if (role === 'platform') {
-                        window.location.href = '../LayoutIndex/PlatformIndex.html';
-                    } else {
-                        // Default dashboard for any other roles
-                        window.location.href = '../LayoutIndex/Dashboard.html';
+                        window.location.href = '/platform/dashboard';
+                      
                     }
                 },
                 error: function(xhr, status, error) {

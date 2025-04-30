@@ -7,13 +7,15 @@ def create_app():
     #import blueprints
     from app.Boundaries.Login import auth_bp
     from app.Boundaries.Admin import admin_bp
+    from app.Boundaries.LayoutPartials import layout_bp
 
     #register blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(layout_bp, url_prefix='/partials')
 
     @app.route('/')
     def index():
-        return render_template('login.html')
+        return render_template('LoginPage/login.html')
 
     return app
