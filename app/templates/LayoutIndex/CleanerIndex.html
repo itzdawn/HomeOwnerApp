@@ -42,13 +42,21 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="services-tab" data-bs-toggle="tab" data-bs-target="#services-content" type="button" role="tab" aria-controls="services-content" aria-selected="true">My Services</button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-content" type="button" role="tab" aria-controls="history-content" aria-selected="false">Service History</button>
+                        </li>
                     </ul>
                     
                     <!-- Tab Content -->
                     <div class="tab-content pt-3" id="contentTabsContent">
                         <!-- Services Tab -->
                         <div class="tab-pane fade show active" id="services-content" role="tabpanel" aria-labelledby="services-tab">
-                            <iframe src="../CleanerMgntPage/ServiceMgnt.html" id="service-mgnt-frame" title="Service Management" scrolling="no"></iframe>
+                            <iframe src="/cleaner/service-management" id="service-mgnt-frame" title="Service Management" scrolling="no"></iframe>
+                        </div>
+                        
+                        <!-- Service History Tab -->
+                        <div class="tab-pane fade" id="history-content" role="tabpanel" aria-labelledby="history-tab">
+                            <iframe src="/cleaner/service-history" id="service-history-frame" title="Service History" scrolling="no"></iframe>
                         </div>
                     </div>
                 </div>
@@ -69,24 +77,34 @@
         // Load partials using jQuery
         $(document).ready(function() {
             // Load navbar and sidebar with improved error handling
-            $("#navbar-placeholder").load("../LayoutPartials/Navbar.html", function(response, status) {
+            $("#navbar-placeholder").load("/partials/navbar", function(response, status) {
                 if (status === "error") {
                     console.error("Failed to load Navbar. Retrying...");
                     // Retry once after short delay
                     setTimeout(function() {
-                        $("#navbar-placeholder").load("../LayoutPartials/Navbar.html");
+                        $("#navbar-placeholder").load("/partials/navbar");
                     }, 500);
                 }
             });
             
-            $("#sidebar-placeholder").load("../LayoutPartials/CleanerSidebar.html", function(response, status) {
+            $("#sidebar-placeholder").load("/partials/sidebar", function(response, status) {
                 if (status === "error") {
                     console.error("Failed to load Sidebar. Retrying...");
                     // Retry once after short delay
                     setTimeout(function() {
-                        $("#sidebar-placeholder").load("../LayoutPartials/CleanerSidebar.html");
+                        $("#sidebar-placeholder").load("/partials/sidebar");
                     }, 500);
                 }
+            });
+            
+            // Tab switching functionality
+            $('#contentTabs button').on('click', function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+                
+                // Update breadcrumb
+                const tabText = $(this).text();
+                $('#current-section').text(tabText);
             });
             
             // Handle sidebar menu item clicks - delegated to handle dynamically loaded content
@@ -99,16 +117,20 @@
                 
                 const target = $(this).data('target');
                 
-                // Now, we only have services
+                // Activate corresponding tab
                 if (target === 'services') {
+                    $('#services-tab').tab('show');
                     $('#current-section').text('My Services');
+                } else if (target === 'history') {
+                    $('#history-tab').tab('show');
+                    $('#current-section').text('Service History');
                 }
             });
             
             // Ensure iframes resize correctly
             function resizeIframes() {
                 const height = window.innerHeight - 150;
-                $('#service-mgnt-frame').height(height);
+                $('#service-mgnt-frame, #service-history-frame').height(height);
             }
             
             // Initial resize and on window resize

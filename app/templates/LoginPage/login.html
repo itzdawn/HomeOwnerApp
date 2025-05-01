@@ -143,6 +143,9 @@
             $('#loadingBtn').removeClass('d-none');
             $('#errorAlert').addClass('d-none');
             
+            // Clear any previous session data
+            localStorage.clear();
+            
             // Get form data
             const formData = {
                 username: $('#username').val(),

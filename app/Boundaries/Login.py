@@ -1,6 +1,17 @@
 from flask import *
 from app.Controllers.LoginController import LoginAuthController
+from functools import wraps
 
+# Route protection decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Check if userRole exists in session
+        if 'userRole' not in session:
+            # Redirect to login page if not logged in
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -20,7 +31,7 @@ def login():
     
     
     if result[1] == 200:  # login success
-        user_role = result[0].get("role", "").lower()
+        user_role = result[0].get("role", "") .lower()
         
         session['userRole'] = user_role #store user role in session to match the role of the user
 
@@ -38,3 +49,10 @@ def login():
     else:
         # Return error message and status
         return jsonify(result[0]), result[1]
+
+@auth_bp.route('/logout')
+def logout():
+    # Clear the user session
+    session.clear()
+    # Redirect to the login page (index route)
+    return redirect(url_for('index'))
