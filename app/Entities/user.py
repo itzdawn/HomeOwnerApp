@@ -1,6 +1,10 @@
 import sqlite3
+from flask import current_app
 
-DATABASE = 'data/app.db'
+def getDb():
+    db = current_app.config['DATABASE']
+    conn = sqlite3.connect(db)
+    return conn
 
 class User:
     def __init__(self, username=None, password=None, role=None, status=None, id=None):
@@ -25,7 +29,7 @@ class User:
     #retrieve user info from db
     @staticmethod
     def getUser(username):
-        conn = sqlite3.connect('data/app.db')
+        conn = getDb()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE username = ?", (username,))
         result = cursor.fetchone()
@@ -37,9 +41,8 @@ class User:
             return None 
     
     #insert new user to database
-    def save(self):
-        print(f"Inserting into DB -> Username: {self.username}, Role: {self.role}, Status: {self.status}")
-        conn = sqlite3.connect(DATABASE)  # Use your actual database path
+    def createUser(self):
+        conn = getDb()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO user (username, password, role, status) VALUES (?, ?, ?, ?)", 
                        (self.username, self.__password, self.role, self.status))
@@ -47,7 +50,7 @@ class User:
         conn.close()
     
     def isUsernameTaken(self):
-        conn = sqlite3.connect(DATABASE)
+        conn = getDb()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE username = ?", (self.username,))
         result = cursor.fetchone()
@@ -59,7 +62,7 @@ class User:
             return True 
         
     def getAllUsers(self):
-        conn = sqlite3.connect('data/app.db')
+        conn = getDb()
         c = conn.cursor()
         c.execute("SELECT id, username, role, status FROM user")
         users = c.fetchall() 

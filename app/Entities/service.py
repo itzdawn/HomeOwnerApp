@@ -1,7 +1,12 @@
 import sqlite3
 from datetime import datetime
+from flask import current_app
 
-DATABASE = 'data/app.db'
+
+def getDb():
+    db = current_app.config['DATABASE']
+    conn = sqlite3.connect(db)
+    return conn
 
 class Service:
     def __init__(self, id=None, userId=None, name=None, description=None, category=None, price=None, shortlists=None, views=None, creationDate=None):
@@ -21,8 +26,8 @@ class Service:
         return self.__userId
     
     #insert to database.
-    def save(self):
-        conn = sqlite3.connect(DATABASE)
+    def createService(self):
+        conn = getDb()
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO service (cleaner_id, name, description, category, price, shortlists, views, creation_date)
@@ -34,7 +39,7 @@ class Service:
     #retrieve service info by cleanerId from db
     @staticmethod
     def getServiceByUser(userId):
-        conn = sqlite3.connect('data/app.db')
+        conn = getDb()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE cleaner_id = ?", (userId,))
         results = cursor.fetchall() #list of service tuples
@@ -58,7 +63,7 @@ class Service:
     #retrieve service info by service id from db
     @staticmethod
     def getServiceByUser(serviceId):
-        conn = sqlite3.connect('data/app.db')
+        conn = getDb()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE id = ?", (serviceId,))
         result = cursor.fetchone()

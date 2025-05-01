@@ -1,8 +1,10 @@
 import sqlite3
 import random
 from datetime import datetime
+import os
 
-DATABASE = 'app.db'
+baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DATABASE= os.path.join(baseDir, 'data', 'app.db')
 ENTRIES = 100 #Number of entries generated.
 
 #DB connection

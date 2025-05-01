@@ -5,9 +5,11 @@ This file uses faker library to generate fake info and populate app.db
 import sqlite3
 from faker import Faker
 import random
+import os
 
+baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DATABASE= os.path.join(baseDir, 'data', 'app.db')
 fake = Faker("en_MS") #Basically malaysian locale because there's no sg.
-DATABASE = 'app.db'
 ENTRIES = 100 #Number of fake entries generated
 
 #DB connection
