@@ -18,7 +18,7 @@ class Service:
         self.price = price
         self.shortlists = shortlists
         self.views = views
-        self.creationDate = creationDate if creationDate else datetime.now()
+        self.creationDate = creationDate if creationDate else datetime.now().strftime("%d-%m-%Y")
     
     def getId(self):
         return self.__id
@@ -36,12 +36,23 @@ class Service:
         conn.commit()
         conn.close()
     
-    #retrieve service info by cleanerId from db
-    @staticmethod
-    def getServiceByUser(userId):
+    def updateService(self):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM user WHERE cleaner_id = ?", (userId,))
+        cursor.execute("""
+            UPDATE service
+            SET name = ?, description = ?, category = ?, price = ?
+            WHERE id = ? AND cleaner_id = ?
+        """, (self.name, self.description, self.category, self.price, self.__id, self.__userId))
+        conn.commit()
+        conn.close()
+    
+    #retrieve service info by cleanerId from db, return type: list of service objects
+    @staticmethod
+    def getServiceByUserId(userId):
+        conn = getDb()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM service WHERE cleaner_id = ?", (userId,))
         results = cursor.fetchall() #list of service tuples
         conn.close()
         
@@ -62,10 +73,10 @@ class Service:
     
     #retrieve service info by service id from db
     @staticmethod
-    def getServiceByUser(serviceId):
+    def getServiceByServiceId(serviceId):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM user WHERE id = ?", (serviceId,))
+        cursor.execute("SELECT * FROM service WHERE id = ?", (serviceId,))
         result = cursor.fetchone()
         conn.close()
         
@@ -83,3 +94,25 @@ class Service:
             )
         else:
             return None
+    
+    @staticmethod
+    def deleteService(serviceId, userId):
+        conn = getDb()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM service WHERE id = ? AND cleaner_id = ?", (serviceId, userId))
+        conn.commit()
+        conn.close()
+    
+    #return list of tuples
+    @staticmethod
+    def searchServices(keyword):
+        conn = getDb()
+        cursor = conn.cursor()
+        wildcard = f'%{keyword}%'
+        cursor.execute("""
+            SELECT * FROM service
+            WHERE name LIKE ? OR description LIKE ?
+        """, (wildcard, wildcard))
+        results = cursor.fetchall()
+        conn.close()
+        return results

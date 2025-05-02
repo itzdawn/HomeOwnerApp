@@ -46,7 +46,7 @@ def viewTable():
     print(completedServices)
     conn.close()
 
-def createCategories():
+def createCategories(): 
     categories = [
         "Bathroom",
         "Kitchen",
