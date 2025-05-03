@@ -25,8 +25,7 @@ def sidebar():
         return render_template('LayoutPartials/CleanerSidebar.html')
     elif role == 'homeowner':
         return render_template('LayoutPartials/HomeownerSidebar.html')
-    elif role == 'platform':
-        return render_template('LayoutPartials/PlatformSidebar.html')
-    
-    # Fallback for unknown roles - redirect to login
-    return redirect(url_for('index'))
+    elif role == 'platformmanagement':
+        return render_template('LayoutPartials/PlatformManagementSidebar.html')
+    else:
+        return redirect(url_for('index'))

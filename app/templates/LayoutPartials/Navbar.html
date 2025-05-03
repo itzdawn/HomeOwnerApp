@@ -23,23 +23,23 @@
     // Function to update navbar based on user role
     function updateNavbarBasedOnRole() {
         // Get role from localStorage
-        const userRole = localStorage.getItem('userRole') || 'admin';
+        const userRole = localStorage.getItem('userRole') || 'Admin';
         
         // Set user display name based on role
         let roleDisplayName = 'User';
         let systemTitle = 'Management System';
         
-        if (userRole === 'admin') {
+        if (userRole === 'Admin') {
             roleDisplayName = 'Admin User';
             systemTitle = 'User Management System';
-        } else if (userRole === 'cleaner') {
+        } else if (userRole === 'Cleaner') {
             roleDisplayName = 'Cleaner User';
             systemTitle = 'Cleaner Management System';
-        } else if (userRole === 'homeowner') {
+        } else if (userRole === 'HomeOwner') {
             roleDisplayName = 'Home Owner User';
             systemTitle = 'Home Owner Management System';
-        } else if (userRole === 'platform') {
-            roleDisplayName = 'Platform Manager';
+        } else if (userRole === 'PlatformManagement') {
+            roleDisplayName = 'Platform Management';
             systemTitle = 'Platform Management System';
         }
         

@@ -14,12 +14,16 @@ def create_app():
     from app.Boundaries.Admin import admin_bp
     from app.Boundaries.Cleaner import cleaner_bp
     from app.Boundaries.LayoutPartials import layout_bp
+    from app.Boundaries.HomeOwner import homeowner_bp
+    from app.Boundaries.PlatformManagement import platform_bp
 
     #register blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(cleaner_bp, url_prefix='/cleaner')
     app.register_blueprint(layout_bp, url_prefix='/partials')
+    app.register_blueprint(homeowner_bp, url_prefix='/homeowner')
+    app.register_blueprint(platform_bp, url_prefix='/platform')
 
     @app.route('/')
     def index():

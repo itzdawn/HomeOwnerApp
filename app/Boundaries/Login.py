@@ -21,7 +21,7 @@ def login():
     data = request.form
     username = data.get('username')
     password = data.get('password')
-    role = data.get('role', '').lower()  # Get role from form data and convert to lowercase
+    role = data.get('role', '')  # Get role from form data 
 
     controller = LoginAuthController()
     result = controller.login(username, password)
@@ -31,9 +31,9 @@ def login():
     
     
     if result[1] == 200:  # login success
-        user_role = result[0].get("role", "") .lower()
+        user_role = result[0].get("role", "")  # Get original case role from DB
         
-        session['userRole'] = user_role #store user role in session to match the role of the user
+        session['userRole'] = user_role  # Store user role in session with original case
 
         # Check if the requested role matches the actual user role from database
         if role and user_role and role != user_role:
@@ -43,7 +43,7 @@ def login():
         return jsonify({
             "message": "Login successful",
             "status": "success",
-            "role": user_role,
+            "role": user_role,  # Send original case role
             "username": username
         }), 200
     else:

@@ -29,10 +29,10 @@
                         <label for="role" class="form-label">Role</label>
                         <select class="form-select" id="role">
                             <option value="">All roles</option>
-                            <option value="admin">Administrator</option>
-                            <option value="cleaner">Cleaner</option>
-                            <option value="homeowner">Home Owner</option>
-                            <option value="platform">Platform Manager</option>
+                            <option value="Admin">Administrator</option>
+                            <option value="Cleaner">Cleaner</option>
+                            <option value="HomeOwner">Home Owner</option>
+                            <option value="PlatformManagement">Platform Management</option>
                         </select>
                     </div>
                 </div>
@@ -73,72 +73,55 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- System user account - Always present and cannot be deleted -->
-                    <tr class="system-user">
-                        <td class="text-center">UA001</td>
-                        <td>Admin User <span class="badge bg-secondary">System</span></td>
-                        <td class="text-center"><span class="badge bg-primary">Administrator</span></td>
-                        <td class="text-center"><span class="badge bg-success">Active</span></td>
-                        <td class="text-center">
-                            <span class="badge bg-secondary">System Account</span>
-                        </td>
-                    </tr>
-                    <!-- Regular user accounts -->
+                    <!-- 
+                    Backend implementation notes:
+                    1. Use Jinja2 to iterate over users fetched from database
+                    2. Example implementation:
+                    
+                    {% for user in users %}
                     <tr>
-                        <td class="text-center">UA002</td>
-                        <td>john_doe</td>
-                        <td class="text-center"><span class="badge bg-info">Cleaner</span></td>
-                        <td class="text-center"><span class="badge bg-success">Active</span></td>
+                        <td class="text-center">{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-{{ 'primary' if user.role=='Admin' 
+                                               else 'info' if user.role=='Cleaner' 
+                                               else 'warning text-dark' if user.role=='PlatformManagement'
+                                               else 'info' }}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-{{ 'success' if user.status==1 else 'danger' }}">
+                                {{ 'Active' if user.status==1 else 'Inactive' }}
+                            </span>
+                        </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-outline-secondary view-btn" data-id="UA002" data-bs-toggle="modal" data-bs-target="#viewAccountModal">
+                                <button class="btn btn-sm btn-outline-secondary view-btn" 
+                                        data-id="{{ user.id }}" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#viewAccountModal">
                                     <i class="bi bi-eye"></i> View
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary edit-btn" data-id="UA002" data-bs-toggle="modal" data-bs-target="#accountModal">
+                                <button class="btn btn-sm btn-outline-primary edit-btn" 
+                                        data-id="{{ user.id }}" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#accountModal">
                                     <i class="bi bi-pencil"></i> Edit
                                 </button>
                             </div>
                         </td>
                     </tr>
-                    <tr>
-                        <td class="text-center">UA003</td>
-                        <td>jane_smith</td>
-                        <td class="text-center"><span class="badge bg-info">Home Owner</span></td>
-                        <td class="text-center"><span class="badge bg-danger">Inactive</span></td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-outline-secondary view-btn" data-id="UA003" data-bs-toggle="modal" data-bs-target="#viewAccountModal">
-                                    <i class="bi bi-eye"></i> View
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary edit-btn" data-id="UA003" data-bs-toggle="modal" data-bs-target="#accountModal">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-center">UA004</td>
-                        <td>platform_manager</td>
-                        <td class="text-center"><span class="badge bg-warning text-dark">Platform Manager</span></td>
-                        <td class="text-center"><span class="badge bg-success">Active</span></td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-outline-secondary view-btn" data-id="UA004" data-bs-toggle="modal" data-bs-target="#viewAccountModal">
-                                    <i class="bi bi-eye"></i> View
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary edit-btn" data-id="UA004" data-bs-toggle="modal" data-bs-target="#accountModal">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                    {% endfor %}
+                    -->
                 </tbody>
             </table>
             
             <!-- Pagination -->
             <div class="pagination-container">
                 <div class="text-muted">
-                    Total of 4 accounts found
+                    <!-- Replace static text with dynamic count: {{ users|length }} or {{ total_count }} -->
+                    Total of <span id="total-count">0</span> accounts found
                 </div>
                 <nav>
                     <ul class="pagination">
@@ -187,10 +170,10 @@
                             <label for="modalUserRole" class="form-label">Role</label>
                             <select class="form-select" id="modalUserRole" required>
                                 <option value="">Select role</option>
-                                <option value="cleaner">Cleaner</option>
-                                <option value="homeowner">Home Owner</option>
-                                <option value="platform">Platform Manager</option>
-                                <option value="admin">Administrator</option>
+                                <option value="Admin">Administrator</option>
+                                <option value="Cleaner">Cleaner</option>
+                                <option value="HomeOwner">Home Owner</option>
+                                <option value="PlatformManagement">Platform Management</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -223,9 +206,9 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title mb-4" id="viewUsername">Username</h5>
-                            <p class="card-text">User ID: <span id="viewAccountID">UA001</span></p>
-                            <p class="card-text">Role: <span id="viewRole">User</span></p>
-                            <p class="card-text">Status: <span id="viewStatus">Active</span></p>
+                            <p class="card-text">User ID: <span id="viewAccountID"></span></p>
+                            <p class="card-text">Role: <span id="viewRole"></span></p>
+                            <p class="card-text">Status: <span id="viewStatus"></span></p>
                         </div>
                     </div>
                 </div>
@@ -258,18 +241,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <!-- Custom JavaScript -->
-    <script src="../../static/js/user-account.js"></script>
+    <script src="../../static/js/admin/user-account.js"></script>
 
-    <!-- Backend API Comment -->
-    <script>
-        // Backend API Endpoints
-        /* 
-        Account API Endpoints:
-        GET /api/accounts - Get all accounts with filtering
-        GET /api/accounts/{id} - Get account by ID
-        POST /api/accounts - Create new account
-        PUT /api/accounts/{id} - Update account
-        */
-    </script>
 </body>
 </html> 
