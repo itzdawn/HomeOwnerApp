@@ -95,6 +95,6 @@ def viewTable():
     
          
 if __name__ == '__main__':
-    # dropUserTable()
-    # generateAndInsert(ENTRIES)
+     #dropUserTable()
+     #generateAndInsert(ENTRIES)
     viewTable()    
