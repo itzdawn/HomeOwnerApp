@@ -28,7 +28,7 @@ def shortlisted_services():
     """Renders the shortlisted services page for homeowners."""
     return render_template('HomeOwnerMgntPage/ShortlistedService.html')
 
-@homeowner_bp.route('/service-history', methods=['GET'])
+@homeowner_bp.route('/service-history', endpoint='view_service_history')
 @login_required
 def service_history():
     """Renders the service history page for homeowners."""
@@ -39,7 +39,7 @@ def service_history():
 def available_services():
     return ServiceDetailsController.get_available_services()
 
-@homeowner_bp.route('/service-history', methods=['GET'])
+@homeowner_bp.route('/service-history/export', endpoint='export_service_history')
 @login_required
 def service_history():
     return ServiceHistoryController.get_service_history()
