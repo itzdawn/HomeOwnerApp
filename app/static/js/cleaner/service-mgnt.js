@@ -82,6 +82,15 @@ $(document).ready(function() {
         // Show loading indicator
         $('tbody').html('<tr><td colspan="6" class="text-center">Loading services...</td></tr>');
         
+        // Log the request params for debugging
+        console.log('Loading services with params:', {
+            service_id: serviceId,
+            service_name: serviceName,
+            category: category,
+            page: page,
+            items_per_page: itemsPerPage
+        });
+        
         // Make API call to fetch services
         $.ajax({
             url: '/api/cleaner/services',
@@ -93,7 +102,13 @@ $(document).ready(function() {
                 page: page,
                 items_per_page: itemsPerPage
             },
+            xhrFields: {
+                withCredentials: true  
+            },
             success: function(response) {
+                // Log the response for debugging
+                console.log('API Response:', response);
+                
                 const services = response.services || [];
                 const totalServices = response.total || 0;
                 const totalPages = Math.ceil(totalServices / itemsPerPage);
@@ -143,6 +158,8 @@ $(document).ready(function() {
             },
             error: function(error) {
                 console.error('Error loading services:', error);
+                // Log detailed error information
+                console.error('Error details:', error.responseText || error.statusText);
                 $('tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading services. Please try again.</td></tr>');
             }
         });
@@ -211,6 +228,9 @@ $(document).ready(function() {
         $.ajax({
             url: `/api/cleaner/services/${serviceId}`,
             type: 'GET',
+            xhrFields: {
+                withCredentials: true  // Ensures cookies are sent with the request
+            },
             success: function(service) {
                 // Populate service details in modal
                 $('#viewServiceID').text(service.id);
@@ -240,6 +260,9 @@ $(document).ready(function() {
         $.ajax({
             url: `/api/cleaner/services/${serviceId}`,
             type: 'GET',
+            xhrFields: {
+                withCredentials: true  // Ensures cookies are sent with the request
+            },
             success: function(service) {
                 // Populate form with service details
                 $('#modalServiceID').val(service.id);
@@ -316,6 +339,9 @@ $(document).ready(function() {
             url: url,
             type: method,
             data: serviceData,
+            xhrFields: {
+                withCredentials: true  // Ensures cookies are sent with the request
+            },
             success: function(response) {
                 showToast(`Service ${isEdit ? 'updated' : 'created'} successfully`, true);
                 $('#serviceModal').modal('hide');
@@ -333,6 +359,9 @@ $(document).ready(function() {
         $.ajax({
             url: `/api/cleaner/services/${serviceId}`,
             type: 'DELETE',
+            xhrFields: {
+                withCredentials: true  // Ensures cookies are sent with the request
+            },
             success: function(response) {
                 showToast('Service deleted successfully', true);
                 $('#deleteServiceModal').modal('hide');

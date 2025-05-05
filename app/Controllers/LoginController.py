@@ -16,7 +16,7 @@ class LoginAuthController():
         if user.status == 0:  #Assuming 0 means inactive, 1 means active
             return {"message": "Account Suspended", "status": "error"}, 403
             
-        return {"message": "Login Success", "role": user.role}, 200
+        return {"message": "Login Success", "role": user.role, "user_id": user.getId()}, 200
 
     
     

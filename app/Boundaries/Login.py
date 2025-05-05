@@ -32,8 +32,10 @@ def login():
     
     if result[1] == 200:  # login success
         user_role = result[0].get("role", "")  # Get original case role from DB
+        user_id = result[0].get("user_id", "")  # Get user ID from DB result
         
         session['userRole'] = user_role  # Store user role in session with original case
+        session['userId'] = user_id  # Store user ID in session
 
         # Check if the requested role matches the actual user role from database
         if role and user_role and role != user_role:
@@ -44,7 +46,8 @@ def login():
             "message": "Login successful",
             "status": "success",
             "role": user_role,  # Send original case role
-            "username": username
+            "username": username,
+            "user_id": user_id  # Include user ID in response
         }), 200
     else:
         # Return error message and status

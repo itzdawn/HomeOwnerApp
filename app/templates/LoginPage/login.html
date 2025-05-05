@@ -162,6 +162,7 @@
                     // Store user role for session persistence
                     localStorage.setItem('userRole', response.role);
                     localStorage.setItem('username', response.username);
+                    localStorage.setItem('userId', response.user_id);
                     
                     // Handle different roles based on backend response
                     const role = response.role;

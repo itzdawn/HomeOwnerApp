@@ -32,6 +32,16 @@ $(document).ready(function() {
         // Show loading indicator
         $('tbody').html('<tr><td colspan="7" class="text-center">Loading service history...</td></tr>');
         
+        // Log the request params for debugging
+        console.log('Loading service history with params:', {
+            service_id: serviceId,
+            service_name: serviceName,
+            category: category,
+            service_date: serviceDate,
+            page: page,
+            items_per_page: itemsPerPage
+        });
+        
         // Make API call to fetch service history
         $.ajax({
             url: '/api/cleaner/service-history',
@@ -44,7 +54,13 @@ $(document).ready(function() {
                 page: page,
                 items_per_page: itemsPerPage
             },
+            xhrFields: {
+                withCredentials: true  // Ensures cookies are sent with the request
+            },
             success: function(response) {
+                // Log the response for debugging
+                console.log('API Response:', response);
+                
                 const services = response.services || [];
                 const totalServices = response.total || 0;
                 const totalPages = Math.ceil(totalServices / itemsPerPage);
@@ -94,6 +110,8 @@ $(document).ready(function() {
             },
             error: function(error) {
                 console.error('Error loading service history:', error);
+                // Log detailed error information
+                console.error('Error details:', error.responseText || error.statusText);
                 $('tbody').html('<tr><td colspan="7" class="text-center text-danger">Error loading service history. Please try again.</td></tr>');
             }
         });
@@ -193,6 +211,9 @@ $(document).ready(function() {
         $.ajax({
             url: `/api/cleaner/service-history/${serviceId}`,
             type: 'GET',
+            xhrFields: {
+                withCredentials: true  // Ensures cookies are sent with the request
+            },
             success: function(service) {
                 // Populate service details in modal
                 $('#detailServiceID').text(service.id);
