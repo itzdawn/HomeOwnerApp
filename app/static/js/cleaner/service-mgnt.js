@@ -77,16 +77,16 @@ $(document).ready(function() {
     function loadServices(page = 1) {
         const serviceId = $('#serviceID').val().trim();
         const serviceName = $('#serviceName').val().trim();
-        const category = $('#serviceCategory').val();
+        const categoryId = $('#serviceCategory').val();
         
         // Show loading indicator
-        $('tbody').html('<tr><td colspan="6" class="text-center">Loading services...</td></tr>');
+        $('tbody').html('<tr><td colspan="8" class="text-center">Loading services...</td></tr>');
         
         // Log the request params for debugging
         console.log('Loading services with params:', {
             service_id: serviceId,
             service_name: serviceName,
-            category: category,
+            category_id: categoryId,
             page: page,
             items_per_page: itemsPerPage
         });
@@ -98,7 +98,7 @@ $(document).ready(function() {
             data: {
                 service_id: serviceId,
                 service_name: serviceName,
-                category: category,
+                category_id: categoryId,
                 page: page,
                 items_per_page: itemsPerPage
             },
@@ -106,34 +106,58 @@ $(document).ready(function() {
                 withCredentials: true  
             },
             success: function(response) {
-                // Log the response for debugging
-                console.log('API Response:', response);
+                // Enhanced debugging
+                console.log('API Raw Response:', response);
+                console.log('Response Type:', typeof response);
                 
-                const services = response.services || [];
-                const totalServices = response.total || 0;
+                // Try to parse response if it's a string
+                let parsedResponse = response;
+                if (typeof response === 'string') {
+                    try {
+                        parsedResponse = JSON.parse(response);
+                        console.log('Parsed JSON Response:', parsedResponse);
+                    } catch (e) {
+                        console.error('Failed to parse response as JSON:', e);
+                    }
+                }
+                
+                // Use the appropriate response object
+                const responseObj = parsedResponse || response;
+                
+                const services = responseObj.services || [];
+                const totalServices = responseObj.total || 0;
                 const totalPages = Math.ceil(totalServices / itemsPerPage);
+                
+                console.log('Services array:', services);
+                console.log('First service item (if available):', services[0] || 'No services returned');
                 
                 // Update current page
                 currentPage = page;
                 
                 if (services.length === 0) {
-                    $('tbody').html('<tr><td colspan="6" class="text-center">No services found</td></tr>');
+                    $('tbody').html('<tr><td colspan="8" class="text-center">No services found</td></tr>');
                     updatePagination(0, 0);
                     return;
                 }
                 
                 let tableHtml = '';
                 services.forEach(function(service) {
+                    // Format date if available
+                    const creationDate = service.creation_date || 'N/A';
+                    // Get category name directly from the API response
+                    const categoryName = service.category_name || 'N/A';
+                    
+                    console.log(`Service ${service.id} - Category Name: ${categoryName}, Category ID: ${service.category_id}`);
+                    
                     tableHtml += `
                     <tr>
                         <td class="text-center">${service.id}</td>
                         <td>${service.name}</td>
-                        <td class="service-description">${service.description}</td>
-                        <td class="text-center">$${service.price.toFixed(2)}</td>
-                        <td class="text-center">
-                            <span class="metric-badge me-2"><i class="bi bi-eye"></i> ${service.views}</span>
-                            <span class="metric-badge"><i class="bi bi-bookmark"></i> ${service.shortlists}</span>
-                        </td>
+                        <td class="text-center">${categoryName}</td>
+                        <td class="text-center">$${parseFloat(service.price).toFixed(2)}</td>
+                        <td class="text-center">${service.shortlists || 0}</td>
+                        <td class="text-center">${service.views || 0}</td>
+                        <td class="text-center">${creationDate}</td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
                                 <button class="btn btn-sm btn-outline-secondary view-btn" data-id="${service.id}" data-bs-toggle="modal" data-bs-target="#viewServiceModal">
@@ -158,13 +182,261 @@ $(document).ready(function() {
             },
             error: function(error) {
                 console.error('Error loading services:', error);
-                // Log detailed error information
-                console.error('Error details:', error.responseText || error.statusText);
-                $('tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading services. Please try again.</td></tr>');
+                // Enhanced error logging
+                console.error('Error status:', error.status);
+                console.error('Error text:', error.statusText);
+                console.error('Error response:', error.responseText);
+                $('tbody').html('<tr><td colspan="8" class="text-center text-danger">Error loading services. Please try again.</td></tr>');
             }
         });
     }
     
+    // View service details
+    function viewService(serviceId) {
+        $.ajax({
+            url: `/api/cleaner/services/${serviceId}`,
+            type: 'GET',
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function(service) {
+                // Populate service details in modal
+                $('#viewServiceID').text(service.id);
+                $('#viewServiceName').text(service.name);
+                // Display category name directly from the API response (service_category.name)
+                $('#viewCategory').text(service.category_name || 'N/A'); // Expecting API to provide category_name
+                $('#viewDescription').text(service.description);
+                $('#viewPrice').text(parseFloat(service.price).toFixed(2));
+                $('#viewCreationDate').text(service.creation_date || 'N/A');
+            },
+            error: function(error) {
+                console.error('Error loading service details:', error);
+                $('#viewServiceModal').modal('hide');
+                showToast('Failed to load service details. Please try again.', false);
+            }
+        });
+    }
+    
+    // Edit service
+    function editService(serviceId) {
+        // Set modal title for edit mode
+        $('#serviceModalLabel').text('Edit Service');
+        $('#editMode').val('edit');
+        
+        $.ajax({
+            url: `/api/cleaner/services/${serviceId}`,
+            type: 'GET',
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function(service) {
+                console.log('Edit service data:', service);
+                
+                // Populate form with service details
+                $('#modalServiceID').val(service.id);
+                $('#modalServiceName').val(service.name);
+                $('#modalCategory').val(service.category_id);
+                $('#modalDescription').val(service.description);
+                $('#modalPrice').val(parseFloat(service.price).toFixed(2));
+                
+                // Handle any other specific fields or validations here
+            },
+            error: function(error) {
+                console.error('Error loading service for edit:', error);
+                $('#serviceModal').modal('hide');
+                showToast('Failed to load service for editing. Please try again.', false);
+            }
+        });
+    }
+    
+    // Save service (create or update)
+    function saveService() {
+        // Get form data
+        const mode = $('#editMode').val();
+        const isEdit = mode === 'edit';
+        const serviceId = $('#modalServiceID').val();
+        const serviceName = $('#modalServiceName').val().trim();
+        const categoryId = $('#modalCategory').val();
+        const description = $('#modalDescription').val().trim();
+        const price = parseFloat($('#modalPrice').val());
+        
+        // Get optional fields if they exist
+        const duration = $('#modalDuration').length ? parseFloat($('#modalDuration').val()) : null;
+        const availability = $('#modalAvailability').length ? $('#modalAvailability').val() : 'available';
+        
+        // Validate form
+        if (!serviceName) {
+            showToast('Service name is required', false);
+            return;
+        }
+        
+        if (!categoryId) {
+            showToast('Category is required', false);
+            return;
+        }
+        
+        if (!description) {
+            showToast('Description is required', false);
+            return;
+        }
+        
+        if (isNaN(price) || price <= 0) {
+            showToast('Valid price is required', false);
+            return;
+        }
+        
+        // Validate duration if it exists in the form
+        if (duration !== null && (isNaN(duration) || duration <= 0)) {
+            showToast('Valid duration is required', false);
+            return;
+        }
+        
+        // Prepare data - matching the entity field names
+        const serviceData = {
+            name: serviceName,
+            description: description,
+            category_id: categoryId,
+            price: price
+        };
+        
+        // Add optional fields if they exist and are valid
+        if (duration !== null) {
+            serviceData.duration = duration;
+        }
+        if (availability) {
+            serviceData.availability = availability;
+        }
+        
+        // API endpoint and method based on create/edit mode
+        const url = isEdit ? `/api/cleaner/services/${serviceId}` : '/api/cleaner/services';
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        console.log('Saving service with data:', serviceData);
+        
+        // Make API call
+        $.ajax({
+            url: url,
+            type: method,
+            contentType: 'application/json',
+            data: JSON.stringify(serviceData),
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function(response) {
+                console.log('Save service response:', response);
+                showToast(`Service ${isEdit ? 'updated' : 'created'} successfully`, true);
+                $('#serviceModal').modal('hide');
+                
+                // Reload services to refresh the list
+                setTimeout(function() {
+                    loadServices(currentPage);
+                }, 500);
+            },
+            error: function(error) {
+                console.error('Error saving service:', error);
+                const errorMsg = getErrorMessage(error);
+                showToast(`Failed to ${isEdit ? 'update' : 'create'} service: ${errorMsg}`, false);
+            }
+        });
+    }
+    
+    // Delete service
+    function deleteService(serviceId) {
+        $.ajax({
+            url: `/api/cleaner/services/${serviceId}`,
+            type: 'DELETE',
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function(response) {
+                showToast('Service deleted successfully', true);
+                $('#deleteServiceModal').modal('hide');
+                loadServices(currentPage);
+            },
+            error: function(error) {
+                console.error('Error deleting service:', error);
+                const errorMsg = getErrorMessage(error);
+                showToast(`Failed to delete service: ${errorMsg}`, false);
+                $('#deleteServiceModal').modal('hide');
+            }
+        });
+    }
+    
+    // Reset service form
+    function resetServiceForm() {
+        $('#serviceForm')[0].reset();
+        $('#modalServiceID').val('');
+    }
+    
+    // Extract error message from response
+    function getErrorMessage(xhr) {
+        let errorMsg = 'Unknown error occurred';
+        try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                errorMsg = xhr.responseJSON.error;
+            } else if (xhr.responseText) {
+                const response = JSON.parse(xhr.responseText);
+                errorMsg = response.message || response.error || errorMsg;
+            }
+        } catch (e) {
+            console.warn('Could not parse error response as JSON');
+        }
+        return errorMsg || xhr.statusText || 'Server error';
+    }
+    
+    // Show toast message
+    function showToast(message, isSuccess) {
+        const toastEl = document.getElementById('successToast');
+        const toast = new bootstrap.Toast(toastEl);
+        
+        $('#toastMessage').text(message);
+        
+        const toastHeader = toastEl.querySelector('.toast-header');
+        if (isSuccess) {
+            toastHeader.classList.remove('bg-danger');
+            toastHeader.classList.add('bg-success');
+            toastHeader.querySelector('strong').textContent = 'Success';
+            toastHeader.querySelector('i').className = 'bi bi-check-circle me-2';
+        } else {
+            toastHeader.classList.remove('bg-success');
+            toastHeader.classList.add('bg-danger');
+            toastHeader.querySelector('strong').textContent = 'Error';
+            toastHeader.querySelector('i').className = 'bi bi-exclamation-triangle me-2';
+        }
+        
+        toast.show();
+    }
+    
+    // Notify parent page that iframe content is loaded
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'iframeLoaded', height: document.body.scrollHeight }, '*');
+    }
+
+    // Helper function to get category name from ID
+    // This function is removed as the category name should be provided by the API directly.
+    /*
+    function getCategoryName(categoryId) {
+        if (!categoryId) return "N/A";
+
+        const categories = {
+            "1": "Bathroom",
+            "2": "Kitchen",
+            "3": "Bedroom",
+            "4": "Living Room",
+            "5": "Storage",
+            "6": "Laundry",
+            "7": "Windows",
+            "8": "Floors & Carpets"
+        };
+
+        // Convert to string in case it's a number
+        const catId = String(categoryId);
+        return categories[catId] || `Category ${catId}`;
+    }
+    */
+
     // Update pagination controls
     function updatePagination(currentPage, totalPages, totalItems = 0) {
         // Update total count
@@ -222,186 +494,4 @@ $(document).ready(function() {
             loadServices(page);
         }
     });
-    
-    // View service details
-    function viewService(serviceId) {
-        $.ajax({
-            url: `/api/cleaner/services/${serviceId}`,
-            type: 'GET',
-            xhrFields: {
-                withCredentials: true  // Ensures cookies are sent with the request
-            },
-            success: function(service) {
-                // Populate service details in modal
-                $('#viewServiceID').text(service.id);
-                $('#viewServiceName').text(service.name);
-                $('#viewCategory').text(service.category_name);
-                $('#viewDescription').text(service.description);
-                $('#viewPrice').text(service.price.toFixed(2));
-                $('#viewDuration').text(service.duration);
-                $('#viewAvailability').text(service.availability === 'available' ? 'Available' : 'Unavailable');
-                $('#viewViews').text(service.views);
-                $('#viewShortlists').text(service.shortlists);
-            },
-            error: function(error) {
-                console.error('Error loading service details:', error);
-                $('#viewServiceModal').modal('hide');
-                showToast('Failed to load service details. Please try again.', false);
-            }
-        });
-    }
-    
-    // Edit service
-    function editService(serviceId) {
-        // Set modal title for edit mode
-        $('#serviceModalLabel').text('Edit Service');
-        $('#editMode').val('edit');
-        
-        $.ajax({
-            url: `/api/cleaner/services/${serviceId}`,
-            type: 'GET',
-            xhrFields: {
-                withCredentials: true  // Ensures cookies are sent with the request
-            },
-            success: function(service) {
-                // Populate form with service details
-                $('#modalServiceID').val(service.id);
-                $('#modalServiceName').val(service.name);
-                $('#modalCategory').val(service.category_id);
-                $('#modalDescription').val(service.description);
-                $('#modalPrice').val(service.price.toFixed(2));
-                $('#modalDuration').val(service.duration);
-                $('#modalAvailability').val(service.availability);
-            },
-            error: function(error) {
-                console.error('Error loading service for edit:', error);
-                $('#serviceModal').modal('hide');
-                showToast('Failed to load service for editing. Please try again.', false);
-            }
-        });
-    }
-    
-    // Save service (create or update)
-    function saveService() {
-        // Get form data
-        const mode = $('#editMode').val();
-        const isEdit = mode === 'edit';
-        const serviceId = $('#modalServiceID').val();
-        const serviceName = $('#modalServiceName').val().trim();
-        const categoryId = $('#modalCategory').val();
-        const description = $('#modalDescription').val().trim();
-        const price = parseFloat($('#modalPrice').val());
-        const duration = parseFloat($('#modalDuration').val());
-        const availability = $('#modalAvailability').val();
-        
-        // Validate form
-        if (!serviceName) {
-            showToast('Service name is required', false);
-            return;
-        }
-        
-        if (!categoryId) {
-            showToast('Category is required', false);
-            return;
-        }
-        
-        if (!description) {
-            showToast('Description is required', false);
-            return;
-        }
-        
-        if (isNaN(price) || price <= 0) {
-            showToast('Valid price is required', false);
-            return;
-        }
-        
-        if (isNaN(duration) || duration <= 0) {
-            showToast('Valid duration is required', false);
-            return;
-        }
-        
-        // Prepare data
-        const serviceData = {
-            name: serviceName,
-            category_id: categoryId,
-            description: description,
-            price: price,
-            duration: duration,
-            availability: availability
-        };
-        
-        // API endpoint and method based on create/edit mode
-        const url = isEdit ? `/api/cleaner/services/${serviceId}` : '/api/cleaner/services';
-        const method = isEdit ? 'PUT' : 'POST';
-        
-        // Make API call
-        $.ajax({
-            url: url,
-            type: method,
-            data: serviceData,
-            xhrFields: {
-                withCredentials: true  // Ensures cookies are sent with the request
-            },
-            success: function(response) {
-                showToast(`Service ${isEdit ? 'updated' : 'created'} successfully`, true);
-                $('#serviceModal').modal('hide');
-                loadServices(currentPage);
-            },
-            error: function(error) {
-                console.error('Error saving service:', error);
-                showToast(`Failed to ${isEdit ? 'update' : 'create'} service. Please try again.`, false);
-            }
-        });
-    }
-    
-    // Delete service
-    function deleteService(serviceId) {
-        $.ajax({
-            url: `/api/cleaner/services/${serviceId}`,
-            type: 'DELETE',
-            xhrFields: {
-                withCredentials: true  // Ensures cookies are sent with the request
-            },
-            success: function(response) {
-                showToast('Service deleted successfully', true);
-                $('#deleteServiceModal').modal('hide');
-                loadServices(currentPage);
-            },
-            error: function(error) {
-                console.error('Error deleting service:', error);
-                showToast('Failed to delete service. Please try again.', false);
-                $('#deleteServiceModal').modal('hide');
-            }
-        });
-    }
-    
-    // Reset service form
-    function resetServiceForm() {
-        $('#serviceForm')[0].reset();
-        $('#modalServiceID').val('');
-    }
-    
-    // Show toast message
-    function showToast(message, isSuccess) {
-        const toastEl = document.getElementById('successToast');
-        const toast = new bootstrap.Toast(toastEl);
-        
-        $('#toastMessage').text(message);
-        
-        const toastHeader = toastEl.querySelector('.toast-header');
-        if (isSuccess) {
-            toastHeader.classList.remove('bg-danger');
-            toastHeader.classList.add('bg-success');
-        } else {
-            toastHeader.classList.remove('bg-success');
-            toastHeader.classList.add('bg-danger');
-        }
-        
-        toast.show();
-    }
-    
-    // Notify parent page that iframe content is loaded
-    if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'iframeLoaded', height: document.body.scrollHeight }, '*');
-    }
 }); 

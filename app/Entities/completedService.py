@@ -34,16 +34,45 @@ class CompletedService:
         conn.close()
     
     @staticmethod
-    def searchPastServices(cleanerId, startDate=None, endDate=None, category=None):
+    def searchPastServices(cleanerId, startDate=None, endDate=None, category_id=None):
+        """
+        Search for past services completed by a cleaner with optional filters
+        
+        Args:
+            cleanerId (int): ID of the cleaner
+            startDate (str, optional): Start date for filtering
+            endDate (str, optional): End date for filtering
+            category_id (int, optional): Category ID for filtering
+            
+        Returns:
+            list: List of dictionaries representing completed services
+        """
         conn = getDb()
         conn.row_factory = sqlite3.Row 
         cursor = conn.cursor()
-        query = """ SELECT cs.id AS CompletedServiceId, cs.cleaner_id, cs.homeowner_id, cs.service_id, cs.service_date,
-            s.name, s.description, s.price, s.category, s.creation_date
+        
+        # Enhanced query to include homeowner name and category details
+        query = """ 
+            SELECT 
+                cs.id AS CompletedServiceId, 
+                cs.cleaner_id, 
+                cs.homeowner_id, 
+                cs.service_id, 
+                cs.service_date,
+                s.name, 
+                s.description, 
+                s.price, 
+                s.category_id,
+                sc.name as category_name,
+                u.username as homeowner_name,
+                s.creation_date
             FROM completed_service cs
             JOIN service s ON cs.service_id = s.id
+            LEFT JOIN service_category sc ON s.category_id = sc.id
+            LEFT JOIN user u ON cs.homeowner_id = u.id
             WHERE cs.cleaner_id = ?
-            """
+        """
+        
         params = [cleanerId]
         if startDate:
             query += " AND cs.service_date >= ?"
@@ -51,14 +80,39 @@ class CompletedService:
         if endDate:
             query += " AND cs.service_date <= ?"
             params.append(endDate)
-        if category:
-            query += " AND s.category = ?"
-            params.append(category)
+        if category_id:
+            query += " AND s.category_id = ?"
+            params.append(category_id)
+            
+        # Log query for debugging
+        print(f"DEBUG - SQL Query: {query}")
+        print(f"DEBUG - Query params: {params}")
             
         cursor.execute(query, tuple(params))
         queryResults = cursor.fetchall()
+        
+        # Debug first result
+        if queryResults:
+            print(f"DEBUG - First raw database result: {dict(queryResults[0])}")
+        
+        # Convert results to dictionaries and ensure proper data types
+        results = []
+        for row in queryResults:
+            result_dict = dict(row)
+            
+            # Ensure proper types for category_id
+            if 'category_id' in result_dict and result_dict['category_id'] is not None:
+                try:
+                    if not isinstance(result_dict['category_id'], int):
+                        result_dict['category_id'] = int(result_dict['category_id'])
+                except (ValueError, TypeError):
+                    # Keep original value if conversion fails
+                    pass
+            
+            results.append(result_dict)
+            
         conn.close()
-        return [dict(result) for result in queryResults]
+        return results
 
     @staticmethod
     def get_service_report(start_date, end_date, group_by="category"):
@@ -191,45 +245,85 @@ class CompletedService:
         Returns:
             dict: Dictionary containing service details or None if not found
         """
-        conn = getDb()
-        conn.row_factory = sqlite3.Row 
-        cursor = conn.cursor()
-        
-        # Comprehensive query to get all needed information including homeowner details and ratings
-        query = """
-            SELECT 
-                cs.id, 
-                cs.cleaner_id, 
-                cs.homeowner_id, 
-                cs.service_id, 
-                cs.service_date,
-                s.name, 
-                s.description, 
-                s.price, 
-                s.category as category_id,
-                cat.name as category_name,
-                s.duration,
-                u.name as homeowner_name,
-                a.street || ', ' || a.city || ', ' || a.state || ' ' || a.zip as address,
-                COALESCE(AVG(r.rating), 0) as rating,
-                r.feedback
-            FROM completed_service cs
-            JOIN service s ON cs.service_id = s.id
-            LEFT JOIN category cat ON s.category = cat.id
-            JOIN user u ON cs.homeowner_id = u.id
-            LEFT JOIN address a ON u.id = a.user_id
-            LEFT JOIN rating r ON cs.id = r.completed_service_id
-            WHERE cs.id = ? AND cs.cleaner_id = ?
-            GROUP BY cs.id
-        """
-        
-        cursor.execute(query, (serviceId, cleanerId))
-        result = cursor.fetchone()
-        conn.close()
-        
-        if result:
-            return dict(result)
-        return None
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row 
+            cursor = conn.cursor()
+            
+            # Simplified query to reduce potential for errors
+            query = """
+                SELECT 
+                    cs.id AS CompletedServiceId, 
+                    cs.cleaner_id, 
+                    cs.homeowner_id, 
+                    cs.service_id, 
+                    cs.service_date,
+                    s.name, 
+                    s.description, 
+                    s.price, 
+                    s.category_id,
+                    sc.name as category_name,
+                    u.username as homeowner_name
+                FROM completed_service cs
+                JOIN service s ON cs.service_id = s.id
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                LEFT JOIN user u ON cs.homeowner_id = u.id
+                WHERE cs.id = ? AND cs.cleaner_id = ?
+            """
+            
+            # Log query for debugging
+            print(f"DEBUG - Detail Query for service {serviceId}: {query}")
+            print(f"DEBUG - Detail params: {serviceId}, {cleanerId}")
+            
+            cursor.execute(query, (serviceId, cleanerId))
+            result = cursor.fetchone()
+            
+            # Debug result
+            if result:
+                result_dict = dict(result)
+                print(f"DEBUG - Service detail result: {result_dict}")
+                
+                # Add additional rating info in a separate query to avoid JOIN issues
+                rating_query = """
+                    SELECT AVG(rating) as avg_rating, feedback 
+                    FROM rating 
+                    WHERE completed_service_id = ?
+                    GROUP BY completed_service_id
+                """
+                cursor.execute(rating_query, (serviceId,))
+                rating_result = cursor.fetchone()
+                
+                if rating_result:
+                    rating_dict = dict(rating_result)
+                    result_dict['rating'] = rating_dict.get('avg_rating', 0)
+                    result_dict['feedback'] = rating_dict.get('feedback', '')
+                else:
+                    result_dict['rating'] = 0
+                    result_dict['feedback'] = ''
+                
+                # Ensure proper types for category_id
+                if 'category_id' in result_dict and result_dict['category_id'] is not None:
+                    try:
+                        if not isinstance(result_dict['category_id'], int):
+                            result_dict['category_id'] = int(result_dict['category_id'])
+                    except (ValueError, TypeError):
+                        # Keep original value if conversion fails
+                        pass
+                        
+                conn.close()
+                return result_dict
+                
+            print(f"DEBUG - No service found with ID {serviceId} for cleaner {cleanerId}")
+            conn.close()
+            return None
+            
+        except Exception as e:
+            print(f"ERROR in getPastServiceById: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
+            if conn:
+                conn.close()
+            return None
 
     # id INTEGER PRIMARY KEY AUTOINCREMENT,
     # cleaner_id INTEGER NOT NULL,

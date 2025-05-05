@@ -9,12 +9,13 @@ class UpdateServiceController:
             return None
     def updateService(self, serviceId, userId, name, description, category, price):
         try:
+            # Use category as category_id for consistency with database schema
             service = Service(
                 id=serviceId,
                 userId=userId,
                 name=name,
                 description=description,
-                category=category,
+                category=category,  # This is actually the category_id value
                 price=price
             )
             service.updateService()

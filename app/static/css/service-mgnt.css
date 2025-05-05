@@ -61,4 +61,34 @@
 }
 .metric-badge i {
     margin-right: 0.25rem;
+}
+
+/* Scrollable table container styles */
+.scrollable-table-container {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 0.5rem 0.5rem 0 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.scrollable-table-container table {
+    margin-bottom: 0;
+}
+
+/* Sticky header for scrollable tables */
+.scrollable-table-container thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Pagination container styles */
+.pagination-outer-container {
+    border-radius: 0 0 0.5rem 0.5rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 } 

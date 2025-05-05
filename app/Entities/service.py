@@ -19,6 +19,7 @@ class Service:
         self.shortlists = shortlists
         self.views = views
         self.creationDate = creationDate if creationDate else datetime.now().strftime("%d-%m-%Y")
+        self.category_name = None
     
     def getId(self):
         return self.__id
@@ -30,95 +31,204 @@ class Service:
         """
         Convert Service object to dictionary for JSON serialization
         """
-        return {
+        # Debug output to see what values we're working with
+        print(f"DEBUG - Service object values: id={self.__id}, cleaner_id={self.__userId}, name={self.name}, desc={self.description}, category={self.category}, price={self.price}, category_name={getattr(self, 'category_name', None)}")
+        
+        # Check if category_name was already populated from JOIN query
+        category_name = getattr(self, 'category_name', None)
+        
+        # If category_name is not yet set but we have a category ID, fetch it
+        category_id = self.category
+        if category_name is None and category_id is not None:
+            try:
+                conn = getDb()
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM service_category WHERE id = ?", (category_id,))
+                result = cursor.fetchone()
+                conn.close()
+                if result:
+                    category_name = result[0]
+                    # Store for future use
+                    self.category_name = category_name
+            except Exception as e:
+                print(f"Error getting category name: {e}")
+        
+        # Fix potential data type issues
+        if not isinstance(category_id, int) and category_id is not None:
+            try:
+                category_id = int(category_id)
+            except (ValueError, TypeError):
+                # If conversion fails, keep original value
+                pass
+        
+        # Ensure name is a string, not an integer
+        name_value = self.name
+        if isinstance(name_value, int):
+            name_value = str(name_value)  # Convert integer to string for name field
+        
+        # Create dictionary with all fields
+        service_dict = {
             'id': self.__id,
-            'userId': self.__userId,
-            'name': self.name,
+            'cleaner_id': self.__userId,
+            'name': name_value,
             'description': self.description,
-            'category': self.category,
+            'category_id': category_id,
+            'category_name': category_name,  # Include category_name
             'price': self.price,
             'shortlists': self.shortlists,
             'views': self.views,
-            'creationDate': self.creationDate
+            'creation_date': self.creationDate
         }
+        
+        # Debug the final output dictionary
+        print(f"DEBUG - Final service dict: id={service_dict['id']}, category_id={service_dict['category_id']}, category_name={service_dict['category_name']}")
+        
+        return service_dict
     
     #insert to database.
     def createService(self):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO service (cleaner_id, name, description, category, price, shortlists, views, creation_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (self.getUserId, self.name, self.description, self.category, self.price, self.shortlists, self.views, self.creationDate))
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute("""
+                INSERT INTO service (cleaner_id, category_id, name, description, price, shortlists, views, creation_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (self.getUserId(), self.category, self.name, self.description, self.price, self.shortlists, self.views, self.creationDate))
+            conn.commit()
+            print(f"DEBUG - Service created: {self.name}, category={self.category}")
+            return True
+        except Exception as e:
+            print(f"Error creating service: {e}")
+            return False
+        finally:
+            conn.close()
     
     def updateService(self):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE service
-            SET name = ?, description = ?, category = ?, price = ?
-            WHERE id = ? AND cleaner_id = ?
-        """, (self.name, self.description, self.category, self.price, self.__id, self.__userId))
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute("""
+                UPDATE service
+                SET category_id = ?, name = ?, description = ?, price = ?
+                WHERE id = ? AND cleaner_id = ?
+            """, (self.category, self.name, self.description, self.price, self.__id, self.__userId))
+            conn.commit()
+            print(f"DEBUG - Service updated: id={self.__id}, category={self.category}")
+            return True
+        except Exception as e:
+            print(f"Error updating service: {e}")
+            return False
+        finally:
+            conn.close()
     
     #retrieve service info by cleanerId from db, return type: list of service objects
     @staticmethod
     def getServiceByUserId(userId):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM service WHERE cleaner_id = ?", (userId,))
-        results = cursor.fetchall() #list of service tuples
-        conn.close()
-        
-        services = []
-        for result in results:
-            services.append(Service(
-                id=result[0],
-                userId=result[1],
-                name=result[2],
-                description=result[3],
-                category=result[4],
-                price=result[5],
-                shortlists=result[6],
-                views=result[7],
-                creationDate=result[8]
-            ))
-        return services
+        try:
+            # Use LEFT JOIN to get category name - consistent with column names
+            cursor.execute("""
+                SELECT s.*, sc.name as category_name
+                FROM service s
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                WHERE s.cleaner_id = ?
+            """, (userId,))
+            results = cursor.fetchall() #list of service tuples
+            print(f"DEBUG - Found {len(results)} services for user {userId}")
+            
+            services = []
+            for result in results:
+                service = Service(
+                    id=result[0],
+                    userId=result[1],
+                    name=result[3],
+                    description=result[4],
+                    category=result[2],
+                    price=result[5],
+                    shortlists=result[6],
+                    views=result[7],
+                    creationDate=result[8]
+                )
+                # Store category_name if it exists in the result
+                if len(result) > 9:
+                    service.category_name = result[9]
+                    print(f"DEBUG - Service {result[0]} has category_name: {result[9]}")
+                services.append(service)
+            return services
+        except Exception as e:
+            print(f"Error getting services by user ID: {e}")
+            return []
+        finally:
+            conn.close()
     
     #retrieve service info by service id from db
     @staticmethod
     def getServiceByServiceId(serviceId):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM service WHERE id = ?", (serviceId,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        if result:
-            return Service(
-                id=result[0],
-                userId=result[1],
-                name=result[2],
-                description=result[3],
-                category=result[4],
-                price=result[5],
-                shortlists=result[6],
-                views=result[7],
-                creationDate=result[8]
-            )
-        else:
+        try:
+            # Use LEFT JOIN to get category name - consistent with column names  
+            cursor.execute("""
+                SELECT s.*, sc.name as category_name
+                FROM service s
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                WHERE s.id = ?
+            """, (serviceId,))
+            result = cursor.fetchone()
+            
+            if result:
+                print(f"DEBUG - Found service {serviceId}")
+                service = Service(
+                    id=result[0],
+                    userId=result[1],
+                    name=result[3],
+                    description=result[4],
+                    category=result[2],
+                    price=result[5],
+                    shortlists=result[6],
+                    views=result[7],
+                    creationDate=result[8]
+                )
+                # Store category_name if it exists in the result
+                if len(result) > 9:
+                    service.category_name = result[9]
+                    print(f"DEBUG - Service {result[0]} has category_name: {result[9]}")
+                return service
+            else:
+                print(f"DEBUG - Service {serviceId} not found")
+                return None
+        except Exception as e:
+            print(f"Error getting service by ID: {e}")
             return None
+        finally:
+            conn.close()
     
     @staticmethod
     def deleteService(serviceId, userId):
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM service WHERE id = ? AND cleaner_id = ?", (serviceId, userId))
-        conn.commit()
-        conn.close()
+        """
+        Delete a service by ID and cleaner ID
+        
+        Args:
+            serviceId (int): ID of the service to delete
+            userId (int): ID of the cleaner for authorization
+            
+        Returns:
+            bool: True if service was deleted, False otherwise
+        """
+        try:
+            conn = getDb()
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM service WHERE id = ? AND cleaner_id = ?", (serviceId, userId))
+            # Check if any rows were affected by the operation
+            rowcount = cursor.rowcount
+            conn.commit()
+            conn.close()
+            # Return True if at least one row was deleted
+            return rowcount > 0
+        except Exception as e:
+            print(f"Error in deleteService: {e}")
+            return False
     
     #return list of tuples
     @staticmethod
@@ -334,46 +444,62 @@ class Service:
             conn = getDb()
             cursor = conn.cursor()
             
-            # Build query dynamically based on provided filters
-            query = "SELECT * FROM service WHERE 1=1"
+            # Build query dynamically based on provided filters with JOIN to get category name
+            query = """
+                SELECT s.*, sc.name as category_name
+                FROM service s
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                WHERE 1=1
+            """
             params = []
             
             if userId:
-                query += " AND cleaner_id = ?"
+                query += " AND s.cleaner_id = ?"
                 params.append(userId)
                 
             if serviceId:
-                query += " AND id = ?"
+                query += " AND s.id = ?"
                 params.append(serviceId)
                 
             if serviceName:
-                query += " AND name LIKE ?"
+                query += " AND s.name LIKE ?"
                 params.append(f"%{serviceName}%")
                 
             if category:
-                query += " AND category = ?"
+                query += " AND s.category_id = ?"
                 params.append(category)
-                
+            
+            print(f"DEBUG - Filter query: {query}")
+            print(f"DEBUG - Filter params: {params}")
+            
             cursor.execute(query, tuple(params))
             results = cursor.fetchall()
-            conn.close()
+            
+            print(f"DEBUG - Filter returned {len(results)} services")
             
             # Convert to Service objects
             services = []
             for result in results:
-                services.append(Service(
+                service = Service(
                     id=result[0],
                     userId=result[1],
-                    name=result[2],
-                    description=result[3],
-                    category=result[4],
+                    name=result[3],
+                    description=result[4],
+                    category=result[2],
                     price=result[5],
                     shortlists=result[6],
                     views=result[7],
                     creationDate=result[8]
-                ))
+                )
+                # Store category_name as an attribute to access in to_dict
+                if len(result) > 9:
+                    service.category_name = result[9]
+                services.append(service)
             return services
             
         except Exception as e:
             print(f"Error filtering services: {e}")
             return []
+        finally:
+            if conn:
+                conn.close()

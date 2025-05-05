@@ -22,11 +22,32 @@ $(document).ready(function() {
         loadServiceHistory(1);
     });
     
+    // Helper function to get category name from ID
+    function getCategoryName(categoryId) {
+        if (!categoryId) return "N/A";
+        
+        const categories = {
+            "1": "Bathroom",
+            "2": "Kitchen",
+            "3": "Bedroom",
+            "4": "Living Room",
+            "5": "Storage",
+            "6": "Laundry",
+            "7": "Windows",
+            "8": "Floors & Carpets"
+        };
+        
+        // Convert to string in case it's a number
+        const catId = String(categoryId);
+        return categories[catId] || `Category ${catId}`;
+    }
+    
     // Load service history with pagination and filtering
     function loadServiceHistory(page = 1) {
-        const serviceId = $('#serviceID').val().trim();
+        // Get filter parameters
+        const completedServiceId = $('#serviceID').val().trim(); // This is the COMPLETED_SERVICE table's id (primary key)
         const serviceName = $('#serviceName').val().trim();
-        const category = $('#serviceCategory').val();
+        const categoryId = $('#serviceCategory').val();
         const serviceDate = $('#serviceDate').val();
         
         // Show loading indicator
@@ -34,9 +55,9 @@ $(document).ready(function() {
         
         // Log the request params for debugging
         console.log('Loading service history with params:', {
-            service_id: serviceId,
+            id: completedServiceId, // COMPLETED_SERVICE table's primary key
             service_name: serviceName,
-            category: category,
+            category_id: categoryId,
             service_date: serviceDate,
             page: page,
             items_per_page: itemsPerPage
@@ -47,15 +68,15 @@ $(document).ready(function() {
             url: '/api/cleaner/service-history',
             type: 'GET',
             data: {
-                service_id: serviceId,
+                id: completedServiceId, // COMPLETED_SERVICE table's primary key
                 service_name: serviceName,
-                category: category,
+                category_id: categoryId,
                 service_date: serviceDate,
                 page: page,
                 items_per_page: itemsPerPage
             },
             xhrFields: {
-                withCredentials: true  // Ensures cookies are sent with the request
+                withCredentials: true
             },
             success: function(response) {
                 // Log the response for debugging
@@ -69,32 +90,34 @@ $(document).ready(function() {
                 currentPage = page;
                 
                 if (services.length === 0) {
-                    $('tbody').html('<tr><td colspan="7" class="text-center">No service history found</td></tr>');
+                    $('tbody').html('<tr><td colspan="6" class="text-center">No service history found</td></tr>');
                     updatePagination(0, 0);
                     return;
                 }
                 
                 let tableHtml = '';
                 services.forEach(function(service) {
-                    // Generate rating stars HTML
-                    const ratingHtml = generateRatingStars(service.rating);
+                    // Get formatted values
+                    const rating = parseFloat(service.rating || 0);
+                    const ratingHtml = generateRatingStars(rating);
+                    
+                    // Use safe property access with proper mapping to display names instead of IDs
+                    const homeownerName = service.homeowner_name || 'Unknown';
+                    const serviceName = service.name || 'N/A';
+                    const serviceDateFormatted = service.service_date || 'N/A';
+                    const categoryName = service.category_name || getCategoryName(service.category_id);
+                    const serviceId = service.CompletedServiceId || service.id || service.service_id;
                     
                     tableHtml += `
                     <tr>
-                        <td class="text-center">${service.id}</td>
-                        <td>${service.name}</td>
-                        <td>${service.service_date}</td>
-                        <td>${service.homeowner_name}</td>
+                        <td class="text-center">${serviceId}</td>
+                        <td>${serviceName}</td>
+                        <td class="text-center">${serviceDateFormatted}</td>
+                        <td>${homeownerName}</td>
                         <td class="text-center"><span class="badge bg-success">Completed</span></td>
                         <td class="text-center">
-                            <div class="rating">
-                                ${ratingHtml}
-                                <small class="ms-1">${service.rating.toFixed(1)}</small>
-                            </div>
-                        </td>
-                        <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-outline-secondary view-btn" data-id="${service.id}" data-bs-toggle="modal" data-bs-target="#viewServiceModal">
+                                <button class="btn btn-sm btn-outline-secondary view-btn" data-id="${serviceId}" data-bs-toggle="modal" data-bs-target="#viewServiceModal">
                                     <i class="bi bi-eye"></i> View Details
                                 </button>
                             </div>
@@ -112,7 +135,7 @@ $(document).ready(function() {
                 console.error('Error loading service history:', error);
                 // Log detailed error information
                 console.error('Error details:', error.responseText || error.statusText);
-                $('tbody').html('<tr><td colspan="7" class="text-center text-danger">Error loading service history. Please try again.</td></tr>');
+                $('tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading service history. Please try again.</td></tr>');
             }
         });
     }
@@ -203,43 +226,60 @@ $(document).ready(function() {
     // Handle view button click
     $(document).on('click', '.view-btn', function() {
         const serviceId = $(this).data('id');
-        viewServiceDetails(serviceId);
+        
+        // Get data from the current row instead of making another API call
+        const $row = $(this).closest('tr');
+        const serviceData = {
+            CompletedServiceId: serviceId,
+            name: $row.find('td:nth-child(2)').text().trim(),
+            service_date: $row.find('td:nth-child(3)').text().trim(),
+            homeowner_name: $row.find('td:nth-child(4)').text().trim(),
+            // Rating is fifth column which we can skip as it's not in the modal
+            price: '0.00' // Default price if not available in the table
+        };
+        
+        // Also try to get the category from data if available
+        const category = $row.find('td:nth-child(2)').data('category') || '';
+        
+        // Call view function with the data we already have
+        displayServiceDetails(serviceData);
     });
     
-    // Load service details for viewing
-    function viewServiceDetails(serviceId) {
-        $.ajax({
-            url: `/api/cleaner/service-history/${serviceId}`,
-            type: 'GET',
-            xhrFields: {
-                withCredentials: true  // Ensures cookies are sent with the request
-            },
-            success: function(service) {
-                // Populate service details in modal
-                $('#detailServiceID').text(service.id);
-                $('#detailServiceName').text(service.name);
-                $('#detailCategory').text(service.category_name);
-                $('#detailPrice').text('$' + service.price.toFixed(2));
-                $('#detailDuration').text(service.duration + ' hours');
-                $('#detailClient').text(service.homeowner_name);
-                $('#detailDate').text(service.service_date);
-                $('#detailAddress').text(service.address);
-                
-                // Status badge
-                $('#detailStatus').html('<span class="badge bg-success">Completed</span>');
-                
-                // Rating stars
-                const ratingHtml = generateRatingStars(service.rating);
-                $('#detailRating .rating').html(ratingHtml + `<small class="ms-1">${service.rating.toFixed(1)}</small>`);
-                
-                // Feedback
-                $('#detailFeedback').text(service.feedback || 'No feedback provided by the client.');
-            },
-            error: function(error) {
-                console.error('Error loading service details:', error);
-                $('#viewServiceModal').modal('hide');
-                alert('Failed to load service details. Please try again.');
+    // View service details in modal 
+    function displayServiceDetails(service) {
+        // Populate service details in modal
+        $('#viewCompletedServiceId').text(service.CompletedServiceId || 'N/A');
+        $('#viewServiceName').text(service.name || 'N/A');
+        $('#viewHomeOwner').text(service.homeowner_name || 'N/A');
+        $('#viewCategory').text(service.category_name || getCategoryName(service.category_id) || 'N/A');
+        $('#viewPrice').text(parseFloat(service.price || 0).toFixed(2));
+        $('#viewServiceDate').text(service.service_date || 'N/A');
+        $('#viewStatus').html('<span class="badge bg-success">Completed</span>');
+        
+        console.log('Successfully populated modal with service data');
+    }
+    
+    
+    // Extract error message from response
+    function getErrorMessage(xhr) {
+        let errorMsg = 'Unknown error occurred';
+        try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                errorMsg = xhr.responseJSON.error;
+            } else if (xhr.responseText) {
+                const response = JSON.parse(xhr.responseText);
+                errorMsg = response.message || response.error || errorMsg;
             }
-        });
+        } catch (e) {
+            console.warn('Could not parse error response as JSON');
+        }
+        return errorMsg || xhr.statusText || 'Server error';
+    }
+    
+    // Notify parent page that iframe content is loaded (if in iframe)
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'iframeLoaded', height: document.body.scrollHeight }, '*');
     }
 }); 
