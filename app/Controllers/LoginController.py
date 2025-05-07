@@ -8,15 +8,16 @@ class LoginAuthController():
         user = User.getUser(username)
         
         if user is None:
+            print("User not found.")
             return {"message": "Invalid Credentials", "status": "error"}, 401
-        
         if user.getPassword() != password:
             return {"message": "Invalid Credentials", "status": "error"}, 401
         
         if user.status == 0:  #Assuming 0 means inactive, 1 means active
             return {"message": "Account Suspended", "status": "error"}, 403
             
-        return {"message": "Login Success", "role": user.role, "user_id": user.getId()}, 200
+        return {"message": "Login Success", "profile": user.profileName, "userId": user.getId()}, 200
+
 
     
     

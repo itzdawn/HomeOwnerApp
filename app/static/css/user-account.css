@@ -23,6 +23,9 @@
     align-items: center;
     margin-top: 1rem;
 }
+.pagination-container .text-muted {
+    padding-left: 1rem; 
+}
 /* Improved table spacing */
 .table {
     margin-bottom: 0;
@@ -54,7 +57,7 @@
 } 
 /* Add scrolling capability to table */
 .table-container {
-    max-height: 500px;
+    max-height: calc(100vh - 280px); 
     overflow-y: auto;
     margin-bottom: 20px;
 }

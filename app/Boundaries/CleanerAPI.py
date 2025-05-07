@@ -5,13 +5,11 @@ from app.Controllers.Cleaner_related.UpdateService import UpdateServiceControlle
 from app.Controllers.Cleaner_related.SearchPastService import SearchPastServiceController
 from app.Boundaries.Login import login_required
 
-# Blueprint for all cleaner API endpoints
 cleaner_api_bp = Blueprint('cleaner_api', __name__)
 
 @cleaner_api_bp.route('/services', methods=['GET'])
 @login_required
 def get_services_api():
-    # Get services for the logged-in cleaner
     userId = session.get('userId')
     print(f"DEBUG - Session contents: {session}")
     print(f"DEBUG - get_services_api, userId: {userId}")
@@ -19,16 +17,13 @@ def get_services_api():
     if not userId:
         return jsonify({"error": "User not logged in"}), 401
 
-    # Get search/filter parameters
     service_id = request.args.get('service_id')
     service_name = request.args.get('service_name')
     category_id = request.args.get('category_id')
     
-    # Get pagination parameters
     page = int(request.args.get('page', 1))
     items_per_page = int(request.args.get('items_per_page', 10))
 
-    # Debug log the request parameters
     print(f"DEBUG - API request params: service_id={service_id}, service_name={service_name}, category_id={category_id}, page={page}")
 
     # Use enhanced filterServices method for efficient database filtering
@@ -41,25 +36,19 @@ def get_services_api():
     )
     
     if not services:
-        # Return empty result in expected format
         return jsonify({"services": [], "total": 0})
     
-    # Get total count for pagination
     total_count = len(services)
     
-    # Apply pagination manually
     start_idx = (page - 1) * items_per_page
     end_idx = start_idx + items_per_page
     paginated_services = services[start_idx:end_idx]
     
-    # Convert to dict for JSON serialization
     services_data = [service.to_dict() for service in paginated_services]
     
-    # Debug log for first service to check data structure
     if services_data:
         print(f"DEBUG - First service data sample: {services_data[0]}")
         
-    # Return in the format expected by frontend
     return jsonify({
         "services": services_data,
         "total": total_count
@@ -68,7 +57,6 @@ def get_services_api():
 @cleaner_api_bp.route('/services/<int:service_id>', methods=['GET'])
 @login_required
 def get_service_by_id(service_id):
-    # Get a single service by ID
     userId = session.get('userId')
     if not userId:
         return jsonify({"error": "User not logged in"}), 401
@@ -87,7 +75,6 @@ def get_service_by_id(service_id):
 @cleaner_api_bp.route('/services', methods=['POST'])
 @login_required
 def create_service_api():
-    # Create a new service
     try:
         userId = session.get('userId')
         if not userId:
@@ -97,7 +84,6 @@ def create_service_api():
         if not data:
             return jsonify({"error": "Invalid input"}), 400
 
-        # Log the incoming data for debugging
         print(f"DEBUG - Create service data: {data}")
 
         controller = CreateServiceController()
@@ -130,7 +116,6 @@ def update_service_api(service_id):
         if not data:
             return jsonify({"error": "Invalid input"}), 400
 
-        # Log the incoming data for debugging
         print(f"DEBUG - Update service data: {data}")
 
         controller = UpdateServiceController()
@@ -163,15 +148,12 @@ def delete_service_api(service_id):
         controller = DeleteServiceController()
         result = controller.delete(service_id, userId)
         
-        # Handle the new response format
         if isinstance(result, dict):
-            # New format returns a dictionary with success and message
             if result.get('success'):
                 return jsonify({"success": True, "message": result.get('message', 'Service deleted successfully')})
             else:
                 return jsonify({"error": result.get('message', 'Delete failed or unauthorized')}), 403
         else:
-            # Old format returns a boolean
             if result:
                 return jsonify({"success": True, "message": "Service deleted successfully"})
             else:

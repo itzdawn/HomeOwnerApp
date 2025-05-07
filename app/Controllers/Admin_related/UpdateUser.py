@@ -4,14 +4,14 @@ class UpdateUserController:
     def __init__(self):
         pass
         
-    def updateUser(self, user_id, username=None, role=None, status=None, password=None):
+    def updateUser(self, userId, username=None, profile=None, status=None, password=None):
         """
         Update a user account
         
         Args:
-            user_id (int): ID of the user to update
+            userId (int): ID of the user to update
             username (str, optional): New username
-            role (str, optional): New role
+            profile (str, optional): New profile
             status (int, optional): New status (0=inactive, 1=active)
             password (str, optional): New password (if being changed)
             
@@ -20,34 +20,31 @@ class UpdateUserController:
         """
         try:
             # Check if user exists
-            user = User.getUserById(user_id)
+            user = User.getUserById(userId)
             if not user:
                 return {"success": False, "message": "User not found"}
             
             # Protect system admin accounts
-            if user.role == "Admin" and role != "Admin":
-                return {"success": False, "message": "Cannot change role of Administrator account"}
+            if user.profileName == "Admin" and profile != "Admin":
+                return {"success": False, "message": "Cannot change profile of Administrator account"}
             
             # Check if username already exists (if changing username)
             if username and username != user.username:
-                existing_user = User.getUserByUsername(username)
-                if existing_user and existing_user.id != user_id:
+                existingUser = User.getUser(username)
+                if existingUser and existingUser.getId() != userId:
                     return {"success": False, "message": "Username already exists"}
             
-            # Update user fields
+            #Update user fields
             if username:
                 user.username = username
-            if role:
-                user.role = role
+            if profile:
+                user.profileId = user.getProfileIndex(profile)
             if status is not None:
                 user.status = status
             if password:
-                import hashlib
-                # Hash password (simple example - use a more secure method in production)
-                user.password = hashlib.sha256(password.encode()).hexdigest()
+                user.setPassword(password)
             
-            # Save changes
-            result = user.save()
+            result = user.updateUser()
             
             if result:
                 return {"success": True, "message": "User updated successfully"}

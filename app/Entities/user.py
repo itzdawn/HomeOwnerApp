@@ -7,52 +7,66 @@ def getDb():
     return conn
 
 class User:
-    def __init__(self, username=None, password=None, role=None, status=None, id=None):
+    def __init__(self, username=None, password=None, profileId=None, status=None, id=None):
         self.__id = id
         self.username = username
         self.__password = password
-        self.role = role
+        self.profileId = profileId
         self.status = status
+        self.profileName = None #store profile name here for easier access.
 
-    def isValidName(self):
-        return len(self.username) > 0 #ensures username must contain at least 1 character.
-    
-    def isValidPass(self):
-        return len(self.__password) >= 7
-    
+    def setPassword(self, password):
+        self.__password = password
     def getPassword(self):
         return self.__password
-    
     def getId(self):
         return self.__id
-    
-    #retrieve user info from db
-    @staticmethod
-    def getUser(username):
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM user WHERE username = ?", (username,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        if result:
-            return User(id=result[0], username=result[1], password=result[2], role=result[3], status=result[4])
-        else:
-            return None 
     
     #insert new user to database
     def createUser(self):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO user (username, password, role, status) VALUES (?, ?, ?, ?)", 
-                       (self.username, self.__password, self.role, self.status))
+        cursor.execute("INSERT INTO user (username, password, profile_id, status) VALUES (?, ?, ?, ?)", 
+                       (self.username, self.getPassword(), self.profileId, self.status))
         conn.commit()
         conn.close()
+    def toDict(self):
+        return {
+            'id': self.getId(),
+            'username': self.username,
+            'profile': self.profileName,
+            'status': self.status
+        }
     
-    def isUsernameTaken(self):
+    def updateUser(self):
+        try:
+            conn = getDb()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                UPDATE user 
+                SET username = ?, password = ?, profile_id = ?, status = ?
+                WHERE id = ?
+            """, (self.username, self.getPassword(), self.profileId, self.status, self.getId()))
+
+            conn.commit()
+            conn.close()
+            return True
+
+        except Exception as e:
+            print(f"Error updating user: {str(e)}")
+            return False
+    @staticmethod
+    def isValidName(username):
+        return len(username) > 0 #ensures username must contain at least 1 character.
+    @staticmethod
+    def isValidPass(password):
+        return len(password) >= 7
+    @staticmethod
+    def isUsernameTaken(username):
         conn = getDb()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM user WHERE username = ?", (self.username,))
+        cursor.execute("SELECT * FROM user WHERE username = ?", (username,))
         result = cursor.fetchone()
         conn.close()
         
@@ -60,11 +74,14 @@ class User:
             return False
         else:
             return True 
-        
-    def getAllUsers(self):
+    @staticmethod  
+    def getAllUsers():
         conn = getDb()
         c = conn.cursor()
-        c.execute("SELECT id, username, role, status FROM user")
+        c.execute("""SELECT user.id, user.username, user.status, user_profile.name 
+                FROM user
+                JOIN user_profile
+                ON user.profile_id = user_profile.id""")
         users = c.fetchall() 
         conn.close()
         
@@ -73,134 +90,111 @@ class User:
             userInfo = {
                 'id': user[0],  #user id
                 'username': user[1],  #username
-                'role': user[2],  #role
-                'status': 'Active' if user[3] == 1 else 'Suspended'
+                'profile': user[3],  #profile
+                'status': user[2]
             }
             userList.append(userInfo)
         return userList
     
     @staticmethod
-    def getUserById(user_id):
-        """
-        Retrieve a user by their ID from the database
+    def getProfileIndex(profile):
+        conn = getDb()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM user_profile WHERE name = ?", (profile,))
+        result = cursor.fetchone()
+        conn.close()
+        if result:
+            return result[0]
+        else:
+            return None
         
-        Args:
-            user_id (int): The ID of the user to retrieve
-            
-        Returns:
-            User: User object if found, None otherwise
-        """
+    #retrieve user info from db
+    @staticmethod
+    def getUser(username):
+        conn = getDb()
+        cursor = conn.cursor()
+        cursor.execute("""SELECT user.id, user.username, user.password, user.profile_id, user.status, user_profile.name 
+                        FROM user
+                        JOIN user_profile
+                        ON user.profile_id = user_profile.id
+                        WHERE user.username = ?""", (username,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            user = User(id=result[0], username=result[1], password=result[2], profileId=result[3], status=result[4])
+            user.profileName = result[5]
+            return user
+        else:
+            return None 
+    @staticmethod
+    def getUserById(userId):
         try:
             conn = getDb()
             cursor = conn.cursor()
-            # Ensure user_id is handled as an integer
-            user_id_int = int(user_id)
-            print(f"[DEBUG] Retrieving user with ID: {user_id_int}")
-            
-            cursor.execute("SELECT * FROM user WHERE id = ?", (user_id_int,))
+            userIdInt = int(userId)
+            cursor.execute("""SELECT user.id, user.username, user.password, user_profile.id, user.status, user_profile.name
+                        FROM user
+                        JOIN user_profile
+                        ON user_profile.id = user.profile_id
+                        WHERE user.id = ?""", (userIdInt,))
             result = cursor.fetchone()
             conn.close()
             
             if result:
-                print(f"[DEBUG] User found: ID={result[0]}, Username={result[1]}")
-                return User(id=result[0], username=result[1], password=result[2], role=result[3], status=result[4])
+                user = User(id=result[0], username=result[1], password=result[2], profileId=result[3], status=result[4])
+                user.profileName = result[5]
+                return user
             else:
-                print(f"[DEBUG] No user found with ID: {user_id_int}")
                 return None
         except Exception as e:
             print(f"[ERROR] Error retrieving user by ID: {str(e)}")
-            import traceback
-            print(f"[TRACE] {traceback.format_exc()}")
             return None
     
+    
+    #return a list of user objects as according to criteria
     @staticmethod
-    def filterUsers(user_id=None, username=None, role=None):
-        """
-        Filter users based on criteria
-        
-        Args:
-            user_id (int, optional): Filter by user ID
-            username (str, optional): Filter by username (partial match)
-            role (str, optional): Filter by role
-            
-        Returns:
-            list: List of User objects matching the criteria
-        """
+    def searchUsers(userId=None, username=None, profile=None):
         try:
             conn = getDb()
             cursor = conn.cursor()
             
-            query = "SELECT * FROM user WHERE 1=1"
+            query = """SELECT user.id, user.username, user.password, user.profile_id, user.status, user_profile.name
+                FROM user JOIN user_profile
+                ON user.profile_id = user_profile.id WHERE 1=1"""
             params = []
             
-            if user_id:
-                query += " AND id = ?"
-                params.append(user_id)
+            if userId:
+                query += " AND user.id = ?"
+                params.append(userId)
                 
             if username:
-                query += " AND username LIKE ?"
+                query += " AND user.username LIKE ?"
                 params.append(f"%{username}%")
                 
-            if role:
-                query += " AND role = ?"
-                params.append(role)
-                
+            if profile:
+                query += " AND user_profile.name = ?"
+                params.append(profile)
+                    
             cursor.execute(query, params)
             results = cursor.fetchall()
             conn.close()
             
             users = []
             for result in results:
-                user = User(id=result[0], username=result[1], password=result[2], role=result[3], status=result[4])
+                user = User(
+                    id=result[0],
+                    username=result[1],
+                    password=result[2],
+                    profileId=result[3],
+                    status=result[4]
+                )
+                user.profileName = result[5]
                 users.append(user)
-                
             return users
+        
         except Exception as e:
             print(f"Error filtering users: {str(e)}")
             return []
             
-    def to_dict(self):
-        """
-        Convert user object to dictionary (for API responses)
-        
-        Returns:
-            dict: User data dictionary (excluding password)
-        """
-        return {
-            'id': self.getId(),
-            'username': self.username,
-            'role': self.role,
-            'status': self.status
-        }
-    
-    def save(self):
-        """
-        Save or update user in database
-        
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            conn = getDb()
-            cursor = conn.cursor()
-            
-            if self.__id:  # Update existing user
-                cursor.execute("""
-                    UPDATE user 
-                    SET username = ?, role = ?, status = ?
-                    WHERE id = ?
-                """, (self.username, self.role, self.status, self.__id))
-            else:  # Create new user
-                cursor.execute("""
-                    INSERT INTO user (username, password, role, status)
-                    VALUES (?, ?, ?, ?)
-                """, (self.username, self.__password, self.role, self.status))
-                self.__id = cursor.lastrowid
-                
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            print(f"Error saving user: {str(e)}")
-            return False
     

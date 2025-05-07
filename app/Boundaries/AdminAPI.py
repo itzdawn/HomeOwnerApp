@@ -1,45 +1,42 @@
 from flask import Blueprint, request, jsonify, session
 from app.Controllers.Admin_related.CreateUser import CreateUserController
 from app.Controllers.Admin_related.UpdateUser import UpdateUserController
-from app.Controllers.Admin_related.DeleteUser import DeleteUserController
 from app.Controllers.Admin_related.CreateUserProfile import CreateUserProfileController
 from app.Controllers.Admin_related.UpdateUserProfile import UpdateUserProfileController
-from app.Controllers.Admin_related.DeleteUserProfile import DeleteUserProfileController
 from app.Controllers.Admin_related.ViewUser import ViewUserController
 from app.Controllers.Admin_related.ViewUserProfile import ViewUserProfileController
+from app.Controllers.Admin_related.SearchUser import SearchUserController
+from app.Controllers.Admin_related.SearchUserProfile import SearchUserProfileController
 from app.Boundaries.Login import login_required
 
-# Blueprint for all admin API endpoints
 admin_api_bp = Blueprint('admin_api', __name__)
 
-# User account endpoints
-
+#for default display and searching/filtering users
 @admin_api_bp.route('/users', methods=['GET'])
 @login_required
-def get_users_api():
+def searchUsersApi():
     try:
-        # Get filter parameters
-        user_id = request.args.get('user_id')
+        user_id = request.args.get('userId')
         username = request.args.get('username')
-        role = request.args.get('role')
-        status = request.args.get('status')
-        if status:
-            status = int(status)
-        
-        controller = ViewUserController()
-        users = controller.getAllUsers(user_id, username, role, status)
-        
+        profile = request.args.get('profile')
+        if user_id or username or profile:
+            controller = SearchUserController()
+            users = controller.searchUsers(user_id, username, profile)
+        else:
+            controller = ViewUserController()
+            users = controller.getAllUsers()
         return jsonify(users)
     except Exception as e:
         print(f"Error getting users: {str(e)}")
         return jsonify({"error": "Server error"}), 500
-
-@admin_api_bp.route('/users/<int:user_id>', methods=['GET'])
+    
+#for viewing user details
+@admin_api_bp.route('/users/<int:userId>', methods=['GET'])
 @login_required
-def get_user_by_id_api(user_id):
+def getUserByIdApi(userId):
     try:
         controller = ViewUserController()
-        user = controller.getUserById(user_id)
+        user = controller.getUserById(userId)
         
         if user:
             return jsonify(user)
@@ -51,17 +48,17 @@ def get_user_by_id_api(user_id):
 
 @admin_api_bp.route('/users', methods=['POST'])
 @login_required
-def create_user_api():
+def createUserApi():
     try:
         data = request.json or request.form
         
         username = data.get('username')
         password = data.get('password')
-        role = data.get('role')
+        profile = data.get('profile')
         status = int(data.get('status', 1))
         
         controller = CreateUserController()
-        response = controller.createUser(username, password, role, status)
+        response = controller.createUser(username, password, profile, status)
         
         if response.get('success'):
             return jsonify(response), 201
@@ -71,17 +68,17 @@ def create_user_api():
         print(f"Error creating user: {str(e)}")
         return jsonify({"error": "Server error"}), 500
 
-@admin_api_bp.route('/users/<int:user_id>', methods=['PUT'])
+@admin_api_bp.route('/users/<int:userId>', methods=['PUT'])
 @login_required
-def update_user_api(user_id):
+def updateUserApi(userId):
     try:
         data = request.json or request.form
         
         controller = UpdateUserController()
         response = controller.updateUser(
-            user_id=user_id,
+            userId=userId,
             username=data.get('username'),
-            role=data.get('role'),
+            profile=data.get('profile'),
             status=int(data.get('status', 1))
         )
         
@@ -93,46 +90,37 @@ def update_user_api(user_id):
         print(f"Error updating user: {str(e)}")
         return jsonify({"error": "Server error"}), 500
 
-@admin_api_bp.route('/users/<int:user_id>', methods=['DELETE'])
-@login_required
-def delete_user_api(user_id):
-    try:
-        controller = DeleteUserController()
-        response = controller.deleteUser(user_id)
-        
-        if response.get('success'):
-            return jsonify(response)
-        else:
-            return jsonify(response), 400
-    except Exception as e:
-        print(f"Error deleting user: {str(e)}")
-        return jsonify({"error": "Server error"}), 500
+
+
 
 # User profile API endpoints
 
 @admin_api_bp.route('/profiles', methods=['GET'])
 @login_required
-def get_profiles_api():
+def searchProfiles():
     try:
-        # Get filter parameters
-        user_id = request.args.get('user_id')
-        full_name = request.args.get('full_name')
-        phone = request.args.get('phone')
-        
-        controller = ViewUserProfileController()
-        profiles = controller.getAllProfiles(user_id, full_name, phone)
-        
+        profile_id = request.args.get('profile_id')
+        name = request.args.get('name')
+
+        if profile_id or name:
+            controller = SearchUserProfileController()
+            profiles = controller.searchProfiles(profile_id, name)
+        else:
+            controller = ViewUserProfileController()
+            profiles = controller.getAllProfiles()
+
         return jsonify(profiles)
     except Exception as e:
         print(f"Error getting profiles: {str(e)}")
         return jsonify({"error": "Server error"}), 500
 
-@admin_api_bp.route('/profiles/<int:profile_id>', methods=['GET'])
+
+@admin_api_bp.route('/profiles/<int:profileId>', methods=['GET'])
 @login_required
-def get_profile_by_id_api(profile_id):
+def getProfileByIdApi(profileId):
     try:
         controller = ViewUserProfileController()
-        profile = controller.getProfileById(profile_id)
+        profile = controller.getProfileById(profileId)
         
         if profile:
             return jsonify(profile)
@@ -142,33 +130,17 @@ def get_profile_by_id_api(profile_id):
         print(f"Error getting profile: {str(e)}")
         return jsonify({"error": "Server error"}), 500
 
-@admin_api_bp.route('/users/<int:user_id>/profile', methods=['GET'])
-@login_required
-def get_profile_by_user_id_api(user_id):
-    try:
-        controller = ViewUserProfileController()
-        profile = controller.getProfileByUserId(user_id)
-        
-        if profile:
-            return jsonify(profile)
-        else:
-            return jsonify({"error": "Profile not found for this user"}), 404
-    except Exception as e:
-        print(f"Error getting profile: {str(e)}")
-        return jsonify({"error": "Server error"}), 500
-
 @admin_api_bp.route('/profiles', methods=['POST'])
 @login_required
-def create_profile_api():
+def createProfileApi():
     try:
         data = request.json or request.form
         
         controller = CreateUserProfileController()
         response = controller.createUserProfile(
-            user_id=data.get('user_id'),
-            full_name=data.get('full_name'),
-            phone=data.get('phone'),
-            address=data.get('address')
+            name=data.get('name'),
+            description=data.get('description'),
+            status=int(data.get('status', 1))
         )
         
         if response.get('success'):
@@ -179,18 +151,18 @@ def create_profile_api():
         print(f"Error creating profile: {str(e)}")
         return jsonify({"error": "Server error"}), 500
 
-@admin_api_bp.route('/profiles/<int:profile_id>', methods=['PUT'])
+@admin_api_bp.route('/profiles/<int:profileId>', methods=['PUT'])
 @login_required
-def update_profile_api(profile_id):
+def update_profile_api(profileId):
     try:
         data = request.json or request.form
         
         controller = UpdateUserProfileController()
         response = controller.updateUserProfile(
-            profile_id=profile_id,
-            full_name=data.get('full_name'),
-            phone=data.get('phone'),
-            address=data.get('address')
+            id=profileId,
+            name=data.get('name'),
+            description=data.get('description'),
+            status=int(data.get('status', 1))
         )
         
         if response.get('success'):
@@ -200,18 +172,3 @@ def update_profile_api(profile_id):
     except Exception as e:
         print(f"Error updating profile: {str(e)}")
         return jsonify({"error": "Server error"}), 500
-
-@admin_api_bp.route('/profiles/<int:profile_id>', methods=['DELETE'])
-@login_required
-def delete_profile_api(profile_id):
-    try:
-        controller = DeleteUserProfileController()
-        response = controller.deleteUserProfile(profile_id)
-        
-        if response.get('success'):
-            return jsonify(response)
-        else:
-            return jsonify(response), 400
-    except Exception as e:
-        print(f"Error deleting profile: {str(e)}")
-        return jsonify({"error": "Server error"}), 500 

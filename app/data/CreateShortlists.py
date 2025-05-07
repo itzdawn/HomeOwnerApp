@@ -74,7 +74,8 @@ def createFakeShortlists(ENTRIES):
     cursor = conn.cursor()
     
     #getting all ids
-    cursor.execute("SELECT id FROM user WHERE role = 'HomeOwner'")
+    cursor.execute("""SELECT user.id FROM user JOIN user_profile 
+                   ON user.profile_id = user_profile.id WHERE user_profile.name = 'HomeOwner'""")
     homeownerIds = [row[0] for row in cursor.fetchall()]
     cursor.execute("SELECT id FROM service")
     serviceIds = [row[0] for row in cursor.fetchall()]
@@ -93,7 +94,13 @@ def createFakeShortlists(ENTRIES):
         else:
             print("Duplicate combination.")
         
-    
+
+def run():
+    dropTable()
+    createShortlistTables()
+    createFakeShortlists(ENTRIES)
+    viewTable()
+      
 if __name__ == '__main__':
     # dropTable()
     # createShortlistTables()

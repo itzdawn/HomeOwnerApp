@@ -68,7 +68,7 @@ def createFakeServices(ENTRIES):
     cursor = conn.cursor()
     
     #getting all cleaner id
-    cursor.execute("SELECT id FROM user WHERE role = 'Cleaner'")
+    cursor.execute("SELECT user.id FROM user JOIN user_profile ON user.profile_id = user_profile.id WHERE user_profile.name = 'Cleaner'")
     cleanerIds = [row[0] for row in cursor.fetchall()]
     cursor.execute("SELECT * FROM service_category")
     result = cursor.fetchall()
@@ -88,7 +88,11 @@ def createFakeServices(ENTRIES):
     
     conn.commit()
     conn.close()
-    
+def run():
+    dropServiceTable()
+    createServiceTables()
+    createFakeServices(ENTRIES)
+    viewTable()
 if __name__ == '__main__':
     # dropServiceTable()
     # createServiceTables()
