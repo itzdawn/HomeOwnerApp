@@ -16,34 +16,27 @@
         <!-- Search Section -->
         <div class="search-section">
             <form id="searchForm">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label for="serviceID" class="form-label">Completed Service ID</label>
-                        <input type="text" class="form-control" id="serviceID" placeholder="Enter service ID">
-                    </div>
+                <div class="row align-items-end g-3">
                     <div class="col-md-3">
                         <label for="serviceName" class="form-label">Service Name</label>
-                        <input type="text" class="form-control" id="serviceName" placeholder="Enter service name">
+                        <input type="text" class="form-control" id="serviceName" placeholder="Enter service name" autocomplete="off">
                     </div>
                     <div class="col-md-3">
                         <label for="serviceCategory" class="form-label">Category</label>
                         <select class="form-select" id="serviceCategory">
                             <option value="">All categories</option>
-                            <option value="1">Bathroom</option>
-                            <option value="2">Kitchen</option>
-                            <option value="3">Bedroom</option>
-                            <option value="4">Living Room</option>
-                            <option value="5">Storage</option>
-                            <option value="6">Laundry</option>
-                            <option value="7">Windows</option>
-                            <option value="8">Floors & Carpets</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label for="serviceDate" class="form-label">Service Date</label>
-                        <input type="date" class="form-control" id="serviceDate">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="startDate">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate">
                     </div>
                 </div>
+
                 <div class="row mt-3">
                     <div class="col-12">
                         <button type="button" class="btn btn-primary" id="searchBtn">
@@ -63,12 +56,13 @@
                 <table class="table table-striped table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th width="10%" class="text-center">Completed Service ID</th>
-                            <th width="20%" class="text-start">Service Name</th>
-                            <th width="15%" class="text-center">Service Date</th>
-                            <th width="15%" class="text-start">Home Owner Name</th>
-                            <th width="15%" class="text-center">Status</th>
-                            <th width="25%" class="text-center">Actions</th>
+                            <th class="text-center">Service ID</th>
+                            <th class="text-start">Service Name</th>
+                            <th class="text-center">Category</th>
+                            <th class="text-center">Service Date</th>
+                            <th class="text-start">Client Name</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,8 +104,10 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title mb-3" id="viewServiceName"></h5>
-                            <p class="card-text">Completed Service ID: <span id="viewCompletedServiceId"></span></p>
-                            <p class="card-text">Home Owner: <span id="viewHomeOwner"></span></p>
+                            <p class="card-text">Service ID: <span id="viewCompletedServiceId"></span></p>
+                            <p class="card-text">Service Name: <span id="viewServiceNameText"></span></p>
+                            <p class="card-text">Category: <span id="viewCategory"></span></p>
+                            <p class="card-text">Client Name: <span id="viewHomeOwner"></span></p>
                             <p class="card-text">Service Date: <span id="viewServiceDate"></span></p>
                             <p class="card-text">Status: <span id="viewStatus"></span></p>
                         </div>
@@ -130,5 +126,23 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Custom JS -->
     <script src="../../static/js/cleaner/service-history.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("/api/cleaner/service-categories")
+                .then(response => response.json())
+                .then(categories => {
+                    const categorySelect = document.getElementById("serviceCategory");
+                    categories.forEach(category => {
+                        const option = document.createElement("option");
+                        option.value = category.id;
+                        option.textContent = category.name;
+                        categorySelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("Failed to load service categories:", error);
+                });
+        });
+    </script>
 </body>
 </html>

@@ -1,9 +1,18 @@
 from app.Entities.service import Service
 
 class SearchServiceController:
-    def searchServices(self, keyword):
+    def searchServices(self, userId=None, serviceId=None, name=None, categoryId=None):
         try:
-            return Service.searchServices(keyword)
+            services = Service.searchServices(userId, serviceId, name, categoryId)
+            return [s.toDict() for s in services]
         except Exception as e:
             print(f"[SearchServiceController] Error: {e}")
-            return []
+            return {"success": False, "message": f"Error: {str(e)}"}
+
+    def getAllServiceByUserId(self, userId):
+        try:
+            services = Service.getAllServiceByUserId(userId)
+            return [s.toDict() for s in services]
+        except Exception as e:
+            print(f"[SearchServiceController] Error: {e}")
+            return {"success": False, "message": f"Error: {str(e)}"}

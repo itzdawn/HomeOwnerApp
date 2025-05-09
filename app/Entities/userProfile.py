@@ -26,18 +26,29 @@ class UserProfile:
 
     # By default all created profiles are active.
     def createProfile(self):
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO user_profile (name, description, status) VALUES (?, ?, ?)", (self.name, self.description, 1))
-        conn.commit()
-        conn.close()
+        try:
+            conn = getDb()
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO user_profile (name, description, status) VALUES (?, ?, ?)", (self.name, self.description, self.status))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error creating user profile: {str(e)}")
+            return False
+        
 
     def updateProfile(self):
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE user_profile SET name = ?, description = ?, status = ? WHERE id = ?", (self.name, self.description, self.status, self.id))
-        conn.commit()
-        conn.close()
+        try:
+            conn = getDb()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE user_profile SET name = ?, description = ?, status = ? WHERE id = ?", (self.name, self.description, self.status, self.id))
+            conn.commit()
+            conn.close()    
+            return True
+        except Exception as e:
+            print(f"Error updating user profile: {str(e)}")
+            return False
 
     @staticmethod
     def isNameTaken(name):
@@ -53,32 +64,40 @@ class UserProfile:
             return True 
     @staticmethod
     def getAllProfiles():
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, name, description, status FROM user_profile")
-        rows = cursor.fetchall()
-        conn.close()
-        profiles = []
-        for row in rows:
-            profiles.append({
-                'id': row[0],
-                'name': row[1],
-                'description': row[2],
-                'status': row[3]
-            })
-        return profiles
+        try:
+            conn = getDb()
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, name, description, status FROM user_profile")
+            rows = cursor.fetchall()
+            conn.close()
+            profiles = []
+            for row in rows:
+                profiles.append({
+                    'id': row[0],
+                    'name': row[1],
+                    'description': row[2],
+                    'status': row[3]
+                })
+            return profiles
+        except Exception as e:
+            print(f"[ERROR] Error retrieving user profiles: {str(e)}")
+            return None
     @staticmethod
-    def getProfileById(id):
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, name, description, status FROM user_profile WHERE id = ?", (id,))
-        result = cursor.fetchone()
-        conn.close()
-        if result:
-                userProfile = UserProfile(id=result[0], name=result[1], description=result[2], status=result[3])
-                return userProfile
-        else:
-                return None
+    def getProfileById(profileId):
+        try:
+            conn = getDb()
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, name, description, status FROM user_profile WHERE id = ?", (profileId,))
+            result = cursor.fetchone()
+            conn.close()
+            if result:
+                    userProfile = UserProfile(id=result[0], name=result[1], description=result[2], status=result[3])
+                    return userProfile
+            else:
+                    return None
+        except Exception as e:
+            print(f"[ERROR] Error retrieving user profile by ID: {str(e)}")
+            return None
     @staticmethod
     def searchProfiles(profileId=None, name=None):
         try:

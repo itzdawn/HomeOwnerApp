@@ -1,24 +1,21 @@
 from app.Entities.service import Service
 
 class UpdateServiceController:
-    def getServiceByServiceId(self, serviceId):
-        try:
-            return Service.getServiceByServiceId(serviceId)
-        except Exception as e:
-            print(f"[UpdateServiceController] Fetch Error: {e}")
-            return None
-    def updateService(self, serviceId, userId, name, description, category, price):
+    def updateService(self, serviceId, userId, name, description, categoryId, price):
         try:
             service = Service(
                 id=serviceId,
                 userId=userId,
                 name=name,
                 description=description,
-                category=category, 
+                categoryId=categoryId, 
                 price=price
             )
-            service.updateService()
-            return True
+            response = service.updateService()
+            if response:
+                return {"success": True, "message": "User updated successfully"}
+            else:
+                return {"success": False, "message": "Failed to update user"}
         except Exception as e:
             print(f"[UpdateServiceController] Error: {e}")
-            return False
+            return {"success": False, "message": f"Error: {str(e)}"}

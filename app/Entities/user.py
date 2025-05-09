@@ -24,12 +24,18 @@ class User:
     
     #insert new user to database
     def createUser(self):
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO user (username, password, profile_id, status) VALUES (?, ?, ?, ?)", 
-                       (self.username, self.getPassword(), self.profileId, self.status))
-        conn.commit()
-        conn.close()
+        try:
+            conn = getDb()
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO user (username, password, profile_id, status) VALUES (?, ?, ?, ?)", 
+                        (self.username, self.getPassword(), self.profileId, self.status))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error creating user: {str(e)}")
+            return False
+        
     def toDict(self):
         return {
             'id': self.getId(),
@@ -52,10 +58,10 @@ class User:
             conn.commit()
             conn.close()
             return True
-
         except Exception as e:
             print(f"Error updating user: {str(e)}")
             return False
+        
     @staticmethod
     def isValidName(username):
         return len(username) > 0 #ensures username must contain at least 1 character.
@@ -76,25 +82,29 @@ class User:
             return True 
     @staticmethod  
     def getAllUsers():
-        conn = getDb()
-        c = conn.cursor()
-        c.execute("""SELECT user.id, user.username, user.status, user_profile.name 
-                FROM user
-                JOIN user_profile
-                ON user.profile_id = user_profile.id""")
-        users = c.fetchall() 
-        conn.close()
-        
-        userList = []
-        for user in users:
-            userInfo = {
-                'id': user[0],  #user id
-                'username': user[1],  #username
-                'profile': user[3],  #profile
-                'status': user[2]
-            }
-            userList.append(userInfo)
-        return userList
+        try:
+            conn = getDb()
+            c = conn.cursor()
+            c.execute("""SELECT user.id, user.username, user.status, user_profile.name 
+                    FROM user
+                    JOIN user_profile
+                    ON user.profile_id = user_profile.id""")
+            users = c.fetchall() 
+            conn.close()
+            
+            userList = []
+            for user in users:
+                userInfo = {
+                    'id': user[0],  #user id
+                    'username': user[1],  #username
+                    'profile': user[3],  #profile
+                    'status': user[2]
+                }
+                userList.append(userInfo)
+            return userList
+        except Exception as e:
+            print(f"[ERROR] Error retrieving users: {str(e)}")
+            return None
     
     @staticmethod
     def getProfileIndex(profile):
@@ -108,7 +118,7 @@ class User:
         else:
             return None
         
-    #retrieve user info from db
+    #retrieve user info from db, used by login controller.
     @staticmethod
     def getUser(username):
         conn = getDb()
@@ -132,6 +142,7 @@ class User:
         try:
             conn = getDb()
             cursor = conn.cursor()
+            #to ensure userid is always int.
             userIdInt = int(userId)
             cursor.execute("""SELECT user.id, user.username, user.password, user_profile.id, user.status, user_profile.name
                         FROM user

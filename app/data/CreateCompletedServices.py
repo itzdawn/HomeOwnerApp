@@ -76,8 +76,8 @@ def createFakeCompletedServices(ENTRIES):
         cursor.execute("SELECT creation_date FROM service WHERE id = ?", (serviceId,))
         result = cursor.fetchone()
         creationDate = result[0]
-        serviceDateObj = datetime.strptime(creationDate, "%d-%m-%Y") + timedelta(days=randomDays)
-        serviceDate = serviceDateObj.strftime("%d-%m-%Y")
+        creationDateObj = datetime.strptime(creationDate, "%Y-%m-%d")
+        serviceDate = (creationDateObj + timedelta(days=randomDays)).date().isoformat()
         insertCompletedService(cleanerId,homeownerId,serviceId,serviceDate) 
     
     conn.commit()
@@ -90,8 +90,9 @@ def run():
     viewTable()
 
 if __name__ == '__main__':
-    # dropTable()
-    # createCompletedServiceTable()
-    # createFakeCompletedServices(ENTRIES)
+    dropTable()
+    createCompletedServiceTable()
+    createFakeCompletedServices(ENTRIES)
     viewTable()
+
 

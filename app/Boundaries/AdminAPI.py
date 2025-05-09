@@ -11,21 +11,21 @@ from app.Boundaries.Login import login_required
 
 admin_api_bp = Blueprint('admin_api', __name__)
 
-#for default display and searching/filtering users
+
+#search and filter according to name/profile/id
 @admin_api_bp.route('/users', methods=['GET'])
 @login_required
 def searchUsersApi():
     try:
-        user_id = request.args.get('userId')
+        user_id = request.args.get('userId', type=int)
         username = request.args.get('username')
         profile = request.args.get('profile')
+        controller = SearchUserController()
         if user_id or username or profile:
-            controller = SearchUserController()
             users = controller.searchUsers(user_id, username, profile)
         else:
-            controller = ViewUserController()
             users = controller.getAllUsers()
-        return jsonify(users)
+        return jsonify(users), 200
     except Exception as e:
         print(f"Error getting users: {str(e)}")
         return jsonify({"error": "Server error"}), 500
@@ -39,7 +39,7 @@ def getUserByIdApi(userId):
         user = controller.getUserById(userId)
         
         if user:
-            return jsonify(user)
+            return jsonify(user), 200
         else:
             return jsonify({"error": "User not found"}), 404
     except Exception as e:
@@ -59,7 +59,6 @@ def createUserApi():
         
         controller = CreateUserController()
         response = controller.createUser(username, password, profile, status)
-        
         if response.get('success'):
             return jsonify(response), 201
         else:
@@ -81,9 +80,8 @@ def updateUserApi(userId):
             profile=data.get('profile'),
             status=int(data.get('status', 1))
         )
-        
         if response.get('success'):
-            return jsonify(response)
+            return jsonify(response), 200
         else:
             return jsonify(response), 400
     except Exception as e:
@@ -91,25 +89,21 @@ def updateUserApi(userId):
         return jsonify({"error": "Server error"}), 500
 
 
-
-
-# User profile API endpoints
+# User profile API endpoints ----------------------------------------------------------------------------------------------------
 
 @admin_api_bp.route('/profiles', methods=['GET'])
 @login_required
-def searchProfiles():
+def searchProfilesApi():
     try:
-        profile_id = request.args.get('profile_id')
+        profile_id = request.args.get('profile_id', type=int)
         name = request.args.get('name')
-
+        controller = SearchUserProfileController()
         if profile_id or name:
-            controller = SearchUserProfileController()
             profiles = controller.searchProfiles(profile_id, name)
         else:
-            controller = ViewUserProfileController()
             profiles = controller.getAllProfiles()
 
-        return jsonify(profiles)
+        return jsonify(profiles), 200
     except Exception as e:
         print(f"Error getting profiles: {str(e)}")
         return jsonify({"error": "Server error"}), 500
@@ -123,7 +117,7 @@ def getProfileByIdApi(profileId):
         profile = controller.getProfileById(profileId)
         
         if profile:
-            return jsonify(profile)
+            return jsonify(profile), 200
         else:
             return jsonify({"error": "Profile not found"}), 404
     except Exception as e:
@@ -153,7 +147,7 @@ def createProfileApi():
 
 @admin_api_bp.route('/profiles/<int:profileId>', methods=['PUT'])
 @login_required
-def update_profile_api(profileId):
+def updateProfileApi(profileId):
     try:
         data = request.json or request.form
         
@@ -166,7 +160,7 @@ def update_profile_api(profileId):
         )
         
         if response.get('success'):
-            return jsonify(response)
+            return jsonify(response), 200
         else:
             return jsonify(response), 400
     except Exception as e:

@@ -25,6 +25,7 @@ def createServiceTables():
         shortlists INTEGER DEFAULT 0,
         views INTEGER DEFAULT 0,
         creation_date TEXT NOT NULL,
+        is_deleted INTEGER DEFAULT 0,
         FOREIGN KEY (cleaner_id) REFERENCES user(id),
         FOREIGN KEY (category_id) REFERENCES service_category(id)
     );""")
@@ -78,12 +79,12 @@ def createFakeServices(ENTRIES):
         cleanerId = random.choice(cleanerIds)
         randomCategory = random.choice(list(categoryDict.items()))
         categoryId = randomCategory[0]
-        name = randomCategory[1] + " Cleaning"
-        description = name + "-" + str(datetime.now().strftime("%d-%m-%Y"))
+        name = randomCategory[1]
+        description = name + "-" + str(datetime.now().strftime("%Y-%m-%d"))
         price = random.randint(25,125)
         shortlists = 0
         views = random.randint(0,70)
-        creationDate = datetime.now().strftime("%d-%m-%Y")
+        creationDate = datetime.now().strftime("%Y-%m-%d")
         insertService(cleanerId,categoryId,name,description,price,shortlists,views,creationDate)
     
     conn.commit()
@@ -94,7 +95,7 @@ def run():
     createFakeServices(ENTRIES)
     viewTable()
 if __name__ == '__main__':
-    # dropServiceTable()
-    # createServiceTables()
-    # createFakeServices(ENTRIES)
+    dropServiceTable()
+    createServiceTables()
+    createFakeServices(ENTRIES)
     viewTable()

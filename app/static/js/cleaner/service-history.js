@@ -22,56 +22,35 @@ $(document).ready(function() {
         loadServiceHistory(1);
     });
     
-    // Helper function to get category name from ID
-    function getCategoryName(categoryId) {
-        if (!categoryId) return "N/A";
-        
-        const categories = {
-            "1": "Bathroom",
-            "2": "Kitchen",
-            "3": "Bedroom",
-            "4": "Living Room",
-            "5": "Storage",
-            "6": "Laundry",
-            "7": "Windows",
-            "8": "Floors & Carpets"
-        };
-        
-        // Convert to string in case it's a number
-        const catId = String(categoryId);
-        return categories[catId] || `Category ${catId}`;
-    }
-    
     // Load service history with pagination and filtering
     function loadServiceHistory(page = 1) {
         // Get filter parameters
-        const completedServiceId = $('#serviceID').val().trim(); // This is the COMPLETED_SERVICE table's id (primary key)
         const serviceName = $('#serviceName').val().trim();
         const categoryId = $('#serviceCategory').val();
-        const serviceDate = $('#serviceDate').val();
-        
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
         // Show loading indicator
         $('tbody').html('<tr><td colspan="7" class="text-center">Loading service history...</td></tr>');
         
         // Log the request params for debugging
-        console.log('Loading service history with params:', {
-            id: completedServiceId, // COMPLETED_SERVICE table's primary key
+       console.log('Loading service history with params:', {
             service_name: serviceName,
             category_id: categoryId,
-            service_date: serviceDate,
+            start_date: startDate,
+            end_date: endDate,
             page: page,
             items_per_page: itemsPerPage
         });
-        
+                
         // Make API call to fetch service history
         $.ajax({
             url: '/api/cleaner/service-history',
             type: 'GET',
             data: {
-                id: completedServiceId, // COMPLETED_SERVICE table's primary key
                 service_name: serviceName,
                 category_id: categoryId,
-                service_date: serviceDate,
+                start_date: startDate,
+                end_date: endDate,
                 page: page,
                 items_per_page: itemsPerPage
             },
@@ -105,19 +84,27 @@ $(document).ready(function() {
                     const homeownerName = service.homeowner_name || 'Unknown';
                     const serviceName = service.name || 'N/A';
                     const serviceDateFormatted = service.service_date || 'N/A';
-                    const categoryName = service.category_name || getCategoryName(service.category_id);
+                    const categoryName = service.category_name || 'N/A';
                     const serviceId = service.CompletedServiceId || service.id || service.service_id;
                     
                     tableHtml += `
-                    <tr>
+                    <tr 
+                        data-id="${serviceId}"
+                        data-name="${serviceName}"
+                        data-category-name="${categoryName}"
+                        data-category-id="${service.category_id}"
+                        data-homeowner="${homeownerName}"
+                        data-date="${serviceDateFormatted}">
+                        
                         <td class="text-center">${serviceId}</td>
                         <td>${serviceName}</td>
+                        <td class="text-center">${categoryName}</td>
                         <td class="text-center">${serviceDateFormatted}</td>
                         <td>${homeownerName}</td>
                         <td class="text-center"><span class="badge bg-success">Completed</span></td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-outline-secondary view-btn" data-id="${serviceId}" data-bs-toggle="modal" data-bs-target="#viewServiceModal">
+                                <button class="btn btn-sm btn-outline-secondary view-btn" data-bs-toggle="modal" data-bs-target="#viewServiceModal">
                                     <i class="bi bi-eye"></i> View Details
                                 </button>
                             </div>
@@ -224,39 +211,26 @@ $(document).ready(function() {
     });
     
     // Handle view button click
-    $(document).on('click', '.view-btn', function() {
-        const serviceId = $(this).data('id');
-        
-        // Get data from the current row instead of making another API call
-        const $row = $(this).closest('tr');
-        const serviceData = {
-            CompletedServiceId: serviceId,
-            name: $row.find('td:nth-child(2)').text().trim(),
-            service_date: $row.find('td:nth-child(3)').text().trim(),
-            homeowner_name: $row.find('td:nth-child(4)').text().trim(),
-            // Rating is fifth column which we can skip as it's not in the modal
-            price: '0.00' // Default price if not available in the table
-        };
-        
-        // Also try to get the category from data if available
-        const category = $row.find('td:nth-child(2)').data('category') || '';
-        
-        // Call view function with the data we already have
-        displayServiceDetails(serviceData);
+    $(document).on('click', '.view-btn', function () {
+        const serviceId = $(this).closest('tr').data('id');
+
+        $.get(`/api/cleaner/completed-service/${serviceId}`, function (service) {
+            displayServiceDetails(service);
+        }).fail(function (xhr) {
+            const errorMessage = xhr.responseJSON?.error || "Unknown error";
+            alert("Failed to load service details: " + errorMessage);
+        });
     });
     
     // View service details in modal 
     function displayServiceDetails(service) {
-        // Populate service details in modal
         $('#viewCompletedServiceId').text(service.CompletedServiceId || 'N/A');
-        $('#viewServiceName').text(service.name || 'N/A');
+        $('#viewServiceName').text(service.name || 'N/A');               // Modal title
+        $('#viewServiceNameText').text(service.name || 'N/A');           // Detail row
+        $('#viewCategory').text(service.category_name || 'N/A');
         $('#viewHomeOwner').text(service.homeowner_name || 'N/A');
-        $('#viewCategory').text(service.category_name || getCategoryName(service.category_id) || 'N/A');
-        $('#viewPrice').text(parseFloat(service.price || 0).toFixed(2));
         $('#viewServiceDate').text(service.service_date || 'N/A');
         $('#viewStatus').html('<span class="badge bg-success">Completed</span>');
-        
-        console.log('Successfully populated modal with service data');
     }
     
     

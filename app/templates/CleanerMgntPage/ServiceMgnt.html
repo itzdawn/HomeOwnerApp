@@ -29,14 +29,6 @@
                         <label for="serviceCategory" class="form-label">Category</label>
                         <select class="form-select" id="serviceCategory">
                             <option value="">All categories</option>
-                            <option value="1">Bathroom</option>
-                            <option value="2">Kitchen</option>
-                            <option value="3">Bedroom</option>
-                            <option value="4">Living Room</option>
-                            <option value="5">Storage</option>
-                            <option value="6">Laundry</option>
-                            <option value="7">Windows</option>
-                            <option value="8">Floors & Carpets</option>
                         </select>
                     </div>
                 </div>
@@ -131,14 +123,6 @@
                             <label for="modalCategory" class="form-label">Category <span class="text-danger">*</span></label>
                             <select class="form-select" id="modalCategory" required>
                                 <option value="">Select category</option>
-                                <option value="1">Bathroom</option>
-                                <option value="2">Kitchen</option>
-                                <option value="3">Bedroom</option>
-                                <option value="4">Living Room</option>
-                                <option value="5">Storage</option>
-                                <option value="6">Laundry</option>
-                                <option value="7">Windows</option>
-                                <option value="8">Floors & Carpets</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -175,6 +159,8 @@
                             <p class="card-text">Category: <span id="viewCategory"></span></p>
                             <p class="card-text">Description: <span id="viewDescription"></span></p>
                             <p class="card-text">Price: $<span id="viewPrice"></span></p>
+                            <p class="card-text">Shortlists: <span id="viewShortlists"></span></p>
+                            <p class="card-text">Views: <span id="viewViews"></span></p>
                             <p class="card-text">Creation Date: <span id="viewCreationDate"></span></p>
                         </div>
                     </div>
@@ -229,7 +215,31 @@
     
     <!-- Custom JavaScript -->
     <script src="../../static/js/cleaner/service-mgnt.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("/api/cleaner/service-categories")
+                .then(response => response.json())
+                .then(data => {
+                    const modalSelect = document.getElementById("modalCategory");
+                    const searchSelect = document.getElementById("serviceCategory");
 
+                    data.forEach(category => {
+                        const option1 = document.createElement("option");
+                        option1.value = category.id;
+                        option1.textContent = category.name;
+                        modalSelect.appendChild(option1);
+
+                        const option2 = document.createElement("option");
+                        option2.value = category.id;
+                        option2.textContent = category.name;
+                        searchSelect.appendChild(option2);
+                    });
+                })
+                .catch(error => {
+                    console.error("Failed to load categories:", error);
+                });
+        });
+    </script>
 
 </body>
 </html>

@@ -1,9 +1,13 @@
 from app.Entities.service import Service
 
 class ViewServiceController:
-    def getServiceByUserId(self, userId):
+    def getServiceByServiceId(self, serviceId):
         try:
-            return Service.getServiceByUserId(userId)
+            service = Service.getServiceByServiceId(serviceId)
+            if service:
+                return service.toDict()
+            else:
+                return None
         except Exception as e:
-            print(f"[ViewServiceController] Error: {e}")
+            print(f"[ViewServiceController] Fetch Error: {e}")
             return None

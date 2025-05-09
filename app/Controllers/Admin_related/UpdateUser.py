@@ -19,16 +19,16 @@ class UpdateUserController:
             dict: Response with status and message
         """
         try:
-            # Check if user exists
+            #check if user exists
             user = User.getUserById(userId)
             if not user:
                 return {"success": False, "message": "User not found"}
             
-            # Protect system admin accounts
+            #protect system admin accounts
             if user.profileName == "Admin" and profile != "Admin":
                 return {"success": False, "message": "Cannot change profile of Administrator account"}
             
-            # Check if username already exists (if changing username)
+            #check if username already exists (if changing username)
             if username and username != user.username:
                 existingUser = User.getUser(username)
                 if existingUser and existingUser.getId() != userId:

@@ -207,6 +207,8 @@ $(document).ready(function() {
                 $('#viewCategory').text(service.category_name || 'N/A'); // Expecting API to provide category_name
                 $('#viewDescription').text(service.description);
                 $('#viewPrice').text(parseFloat(service.price).toFixed(2));
+                $('#viewShortlists').text(service.shortlists || 0);
+                $('#viewViews').text(service.views || 0);
                 $('#viewCreationDate').text(service.creation_date || 'N/A');
             },
             error: function(error) {
@@ -256,7 +258,7 @@ $(document).ready(function() {
         const isEdit = mode === 'edit';
         const serviceId = $('#modalServiceID').val();
         const serviceName = $('#modalServiceName').val().trim();
-        const categoryId = $('#modalCategory').val();
+        const categoryId = parseInt($('#modalCategory').val(), 10);
         const description = $('#modalDescription').val().trim();
         const price = parseFloat($('#modalPrice').val());
         

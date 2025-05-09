@@ -5,5 +5,16 @@ class SearchUserProfileController:
         pass
 
     def searchProfiles(self, profileId=None, name=None):
-        profiles = UserProfile.searchProfiles(profileId, name)
-        return [p.toDict() for p in profiles]
+        try:
+            profiles = UserProfile.searchProfiles(profileId, name)
+            return [p.toDict() for p in profiles]
+        except Exception as e:
+            print(f"Error retrieving user profiles: {str(e)}")
+            return {"success": False, "message": f"Error: {str(e)}"}
+        
+    def getAllProfiles(self):
+        try:
+            return UserProfile.getAllProfiles()
+        except Exception as e:
+            print(f"[Error]: unable to retrieve user profiles: {str(e)}")
+            return []
