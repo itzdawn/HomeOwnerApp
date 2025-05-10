@@ -24,10 +24,6 @@ var/
 wheels/
 *.egg
 
-# SQLite Database files
-*.db
-*.sqlite3
-
 # Logs
 logs/
 *.log
