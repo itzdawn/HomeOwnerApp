@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import current_app
 
 
@@ -24,16 +24,72 @@ class CompletedService:
         return self.__cleanerId
     def getServiceId(self):
         return self.__serviceId
-    
-    # def completeService(self):
-    #     conn = getDb()
-    #     cursor = conn.cursor()
-    #     cursor.execute("INSERT INTO completed_service (cleaner_id, homeowner_id, service_id, service_date) VALUES (?,?,?,?)", 
-    #                    (self.getCleanerId, self.getHomeOwnerId, self.getServiceId, self.serviceDate))
-    #     conn.commit()
-    #     conn.close()
-    
-    
+
+    @classmethod
+    def generateReport(cls, reportType, dateValue, groupBy):
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            baseDate = datetime.strptime(dateValue, "%Y-%m-%d")
+
+            if reportType == 'daily':
+                startDate = endDate = baseDate
+            elif reportType == 'weekly':
+                startDate = baseDate - timedelta(days=baseDate.weekday())
+                endDate = startDate + timedelta(days=6)
+            elif reportType == 'monthly':
+                startDate = baseDate.replace(day=1)
+                nextMonth = startDate.replace(day=28) + timedelta(days=4)
+                endDate = nextMonth - timedelta(days=nextMonth.day)
+            else:
+                raise ValueError("Unsupported reportType")
+
+            joins = ""
+            groupField = ""
+
+            if groupBy == 'category':
+                joins = """
+                    JOIN service s ON cs.service_id = s.id
+                    JOIN service_category c ON s.category_id = c.id
+                """
+                groupField = "c.name"
+            elif groupBy == 'service':
+                joins = "JOIN service s ON cs.service_id = s.id"
+                groupField = "s.name"
+            elif groupBy == 'cleaner':
+                joins = "JOIN user u ON cs.cleaner_id = u.id"
+                groupField = "u.username"
+            elif groupBy == 'homeowner':
+                joins = "JOIN user u ON cs.homeowner_id = u.id"
+                groupField = "u.username"
+            else:
+                raise ValueError("Invalid groupBy parameter")
+
+            query = f"""
+                SELECT {groupField} AS groupKey, COUNT(*) AS totalServicesUsed
+                FROM completed_service cs
+                {joins}
+                WHERE DATE(cs.service_date) BETWEEN ? AND ?
+                GROUP BY {groupField}
+                ORDER BY totalServicesUsed DESC
+            """
+
+            params = [startDate.strftime("%Y-%m-%d"), endDate.strftime("%Y-%m-%d")]
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+
+            if not rows:
+                return []
+
+            return [{'groupKey': row['groupKey'], 'totalServicesUsed': row['totalServicesUsed']} for row in rows]
+
+        except Exception as e:
+            print("Error in generateReport:", e)
+            return None
+
+        
     @staticmethod
     def getAllPastServices(cleanerId):
         """

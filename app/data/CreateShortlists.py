@@ -102,7 +102,7 @@ def run():
     viewTable()
       
 if __name__ == '__main__':
-    # dropTable()
-    # createShortlistTables()
-    # createFakeShortlists(ENTRIES)
+    dropTable()
+    createShortlistTables()
+    createFakeShortlists(ENTRIES)
     viewTable()

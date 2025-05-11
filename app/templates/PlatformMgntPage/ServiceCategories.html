@@ -17,10 +17,14 @@
         <div class="search-section">
             <form id="searchForm">
                 <div class="row g-3">
-                    <div class="col-md-8">
+                    <div class="col-md-6">
+                        <label for="categoryId" class="form-label">Category ID</label>
+                        <input type="number" class="form-control" id="categoryId" placeholder="Search by category ID">
+                    </div>
+                    <div class="col-md-6">
                         <label for="categoryName" class="form-label">Category Name</label>
                         <input type="text" class="form-control" id="categoryName" placeholder="Search by category name">
-                    </div>
+                    </div>                    
                     <div class="col-md-4 d-flex align-items-end">
                         <button type="button" class="btn btn-primary" id="searchBtn">
                             <i class="bi bi-search"></i> Search

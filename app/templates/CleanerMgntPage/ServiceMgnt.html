@@ -217,28 +217,28 @@
     <script src="../../static/js/cleaner/service-mgnt.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            fetch("/api/cleaner/service-categories")
-                .then(response => response.json())
-                .then(data => {
-                    const modalSelect = document.getElementById("modalCategory");
-                    const searchSelect = document.getElementById("serviceCategory");
+        fetch("/api/cleaner/service-categories")
+            .then(response => response.json())
+            .then(data => {
+                const modalSelect = document.getElementById("modalCategory");
+                const searchSelect = document.getElementById("serviceCategory");
 
-                    data.forEach(category => {
-                        const option1 = document.createElement("option");
-                        option1.value = category.id;
-                        option1.textContent = category.name;
-                        modalSelect.appendChild(option1);
+                data.forEach(category => {
+                    const option1 = document.createElement("option");
+                    option1.value = category.id;
+                    option1.textContent = category.name; 
+                    modalSelect.appendChild(option1);
 
-                        const option2 = document.createElement("option");
-                        option2.value = category.id;
-                        option2.textContent = category.name;
-                        searchSelect.appendChild(option2);
-                    });
-                })
-                .catch(error => {
-                    console.error("Failed to load categories:", error);
+                    const option2 = document.createElement("option");
+                    option2.value = category.id;
+                    option2.textContent = category.name;  // Same here
+                    searchSelect.appendChild(option2);
                 });
-        });
+            })
+            .catch(error => {
+                console.error("Failed to load categories:", error);
+            });
+    });
     </script>
 
 </body>

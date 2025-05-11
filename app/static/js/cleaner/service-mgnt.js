@@ -145,7 +145,7 @@ $(document).ready(function() {
                     // Format date if available
                     const creationDate = service.creation_date || 'N/A';
                     // Get category name directly from the API response
-                    const categoryName = service.category_name || 'N/A';
+                    const categoryName = service.categoryName || 'N/A';
                     
                     console.log(`Service ${service.id} - Category Name: ${categoryName}, Category ID: ${service.category_id}`);
                     
@@ -171,7 +171,7 @@ $(document).ready(function() {
                                 </button>
                             </div>
                         </td>
-                    </tr>`;
+                    </tr>`
                 });
                 
                 // Update table body
@@ -204,7 +204,7 @@ $(document).ready(function() {
                 $('#viewServiceID').text(service.id);
                 $('#viewServiceName').text(service.name);
                 // Display category name directly from the API response (service_category.name)
-                $('#viewCategory').text(service.category_name || 'N/A'); // Expecting API to provide category_name
+                $('#viewCategory').text(service.categoryName || 'N/A'); // Expecting API to provide categoryName
                 $('#viewDescription').text(service.description);
                 $('#viewPrice').text(parseFloat(service.price).toFixed(2));
                 $('#viewShortlists').text(service.shortlists || 0);
@@ -416,28 +416,6 @@ $(document).ready(function() {
         window.parent.postMessage({ type: 'iframeLoaded', height: document.body.scrollHeight }, '*');
     }
 
-    // Helper function to get category name from ID
-    // This function is removed as the category name should be provided by the API directly.
-    /*
-    function getCategoryName(categoryId) {
-        if (!categoryId) return "N/A";
-
-        const categories = {
-            "1": "Bathroom",
-            "2": "Kitchen",
-            "3": "Bedroom",
-            "4": "Living Room",
-            "5": "Storage",
-            "6": "Laundry",
-            "7": "Windows",
-            "8": "Floors & Carpets"
-        };
-
-        // Convert to string in case it's a number
-        const catId = String(categoryId);
-        return categories[catId] || `Category ${catId}`;
-    }
-    */
 
     // Update pagination controls
     function updatePagination(currentPage, totalPages, totalItems = 0) {

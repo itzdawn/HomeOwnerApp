@@ -62,16 +62,16 @@ def searchServicesApi():
         if not userId:
             return jsonify({"error": "User not logged in"}), 401
 
-        service_id = request.args.get('service_id', type=int)
-        service_name = request.args.get('service_name')
-        category_id = request.args.get('category_id')
+        serviceId = request.args.get('service_id', type=int)
+        serviceName = request.args.get('service_name')
+        categoryId = request.args.get('category_id')
         page = int(request.args.get('page', 1))
         items_per_page = int(request.args.get('items_per_page', 10))
 
         controller = SearchServiceController()
 
-        if service_id or service_name or category_id:
-            services = controller.searchServices(userId, service_id, service_name, category_id)
+        if serviceId or serviceName or categoryId:
+            services = controller.searchServices(userId=userId, serviceId=serviceId, serviceName=serviceName, categoryId=categoryId)
         else:
             services = controller.getAllServiceByUserId(userId)
 
@@ -146,11 +146,11 @@ def deleteServiceApi(service_id):
             return jsonify({"error": "User not logged in"}), 401
 
         controller = DeleteServiceController()
-        result = controller.deleteService(service_id, userId)
-        if result.get('success'):
-            return jsonify({"success": True, "message": result.get('message', 'Service deleted successfully')}), 200
+        response = controller.deleteService(service_id, userId)
+        if response.get('success'):
+            return jsonify(response), 200  # Return the result as JSON, with success
         else:
-            return jsonify({"error": result.get('message', 'Delete failed or unauthorized')}), 403
+            return jsonify(response), 403
 
     except Exception as e:
         print(f"Error deleting service: {str(e)}")

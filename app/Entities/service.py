@@ -19,7 +19,7 @@ class Service:
         self.shortlists = shortlists
         self.views = views
         self.creationDate = creationDate if creationDate else datetime.now().strftime("%d-%m-%Y")
-        self.category_name = None
+        self.categoryName = None
     
     def getId(self):
         return self.__id
@@ -28,47 +28,19 @@ class Service:
     
     # Convert service object to dictionary for JSON serialization
     def toDict(self):
-        # Check if category_name was already populated from JOIN query
-        category_name = getattr(self, 'category_name', None)
-        
-        # If category_name is not yet set but we have a category ID, fetch it
-        categoryId = self.categoryId
-        if category_name is None and categoryId is not None:
-            try:
-                conn = getDb()
-                cursor = conn.cursor()
-                cursor.execute("SELECT name FROM service_category WHERE id = ?", (categoryId,))
-                result = cursor.fetchone()
-                conn.close()
-                if result:
-                    category_name = result[0]
-                    # Store for future use
-                    self.category_name = category_name
-            except Exception as e:
-                print(f"Error getting category name: {e}")
-        
-        # Fix potential data type issues
-        if not isinstance(categoryId, int) and categoryId is not None:
-            try:
-                categoryId = int(categoryId)
-            except (ValueError, TypeError):
-                # If conversion fails, keep original value
-                pass
-        
-        service_dict = {
-            'id': self.getId(),
-            'cleaner_id': self.getUserId(),
-            'name': self.name,
-            'description': self.description,
-            'category_id': categoryId,
-            'category_name': category_name,  # Include category_name
-            'price': self.price,
-            'shortlists': self.shortlists,
-            'views': self.views,
-            'creation_date': self.creationDate
+        return {
+            "id": self.getId(),
+            "userId": self.getUserId(),
+            "name": self.name,
+            "description": self.description,
+            "category_id": self.categoryId,
+            "price": self.price,
+            "shortlists": self.shortlists,
+            "views": self.views,
+            "creation_date": self.creationDate,
+            "categoryName": getattr(self, "categoryName", None)
         }
-        return service_dict
-    
+
     #insert to database.
     def createService(self):
         conn = getDb()
@@ -106,9 +78,10 @@ class Service:
     def getAllServiceByUserId(userId):
         try:
             conn = getDb()
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT s.*, sc.name as category_name
+                SELECT s.*, sc.name as categoryName
                 FROM service s
                 LEFT JOIN service_category sc ON s.category_id = sc.id
                 WHERE s.cleaner_id = ? AND s.is_deleted = 0
@@ -119,20 +92,17 @@ class Service:
             services = []
             for result in results:
                 service = Service(
-                    id=result[0],
-                    userId=result[1],
-                    name=result[3],
-                    description=result[4],
-                    categoryId=result[2],
-                    price=result[5],
-                    shortlists=result[6],
-                    views=result[7],
-                    creationDate=result[8]
+                    id=result["id"],
+                    userId=result["cleaner_id"],
+                    name=result["name"],
+                    description=result["description"],
+                    categoryId=result["category_id"],
+                    price=result["price"],
+                    shortlists=result["shortlists"],
+                    views=result["views"],
+                    creationDate=result["creation_date"]
                 )
-                # Store category_name if it exists in the result
-                if len(result) > 9:
-                    service.category_name = result[9]
-                    print(f"DEBUG - Service {result[0]} has category_name: {result[9]}")
+                service.categoryName = result["categoryName"]
                 services.append(service)
             return services
         except Exception as e:
@@ -144,9 +114,10 @@ class Service:
     def getServiceByServiceId(serviceId):
         try:
             conn = getDb()
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT s.*, sc.name as category_name
+                SELECT s.*, sc.name as categoryName
                 FROM service s
                 LEFT JOIN service_category sc ON s.category_id = sc.id
                 WHERE s.id = ? AND s.is_deleted = 0
@@ -155,19 +126,17 @@ class Service:
             conn.close()
             if result:
                 service = Service(
-                    id=result[0],
-                    userId=result[1],
-                    name=result[3],
-                    description=result[4],
-                    categoryId=result[2],
-                    price=result[5],
-                    shortlists=result[6],
-                    views=result[7],
-                    creationDate=result[8]
+                    id=result["id"],
+                    userId=result["cleaner_id"],
+                    name=result["name"],
+                    description=result["description"],
+                    categoryId=result["category_id"],
+                    price=result["price"],
+                    shortlists=result["shortlists"],
+                    views=result["views"],
+                    creationDate=result["creation_date"]
                 )
-                # Store category_name if it exists in the result
-                if len(result) > 9:
-                    service.category_name = result[9]
+                service.categoryName = result["categoryName"]
                 return service
             else:
                 print(f"DEBUG - Service {serviceId} not found")
@@ -206,10 +175,11 @@ class Service:
         """
         try:
             conn = getDb()
+            conn.row_factory = sqlite3.Row 
             cursor = conn.cursor()
 
             query = """
-                SELECT s.*, sc.name as category_name
+                SELECT s.*, sc.name as categoryName
                 FROM service s
                 LEFT JOIN service_category sc ON s.category_id = sc.id
                 WHERE s.is_deleted = 0
@@ -239,18 +209,17 @@ class Service:
             services = []
             for result in results:
                 service = Service(
-                    id=result[0],
-                    userId=result[1],
-                    name=result[3],
-                    description=result[4],
-                    categoryId=result[2],
-                    price=result[5],
-                    shortlists=result[6],
-                    views=result[7],
-                    creationDate=result[8]
+                    id=result["id"],
+                    userId=result["cleaner_id"],
+                    name=result["name"],
+                    description=result["description"],
+                    categoryId=result["category_id"],
+                    price=result["price"],
+                    shortlists=result["shortlists"],
+                    views=result["views"],
+                    creationDate=result["creation_date"]
                 )
-                if len(result) > 9:
-                    service.category_name = result[9]
+                service.categoryName = result["categoryName"]
                 services.append(service)
             return services
             

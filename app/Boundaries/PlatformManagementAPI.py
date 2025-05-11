@@ -1,32 +1,32 @@
 from flask import Blueprint, jsonify, request, session
-from app.Controllers.PlatformManagement_related.CreateCategoryController import CreateCategoryController
-from app.Controllers.PlatformManagement_related.DeleteCategoryController import DeleteCategoryController
-from app.Controllers.PlatformManagement_related.UpdateCategoryController import UpdateCategoryController
-from app.Controllers.PlatformManagement_related.SearchCategoryController import SearchCategoryController
+from app.Controllers.PlatformManagement_related.CreateCategory import CreateCategoryController
+from app.Controllers.PlatformManagement_related.DeleteCategory import DeleteCategoryController
+from app.Controllers.PlatformManagement_related.UpdateCategory import UpdateCategoryController
+from app.Controllers.PlatformManagement_related.SearchCategory import SearchCategoryController
 from app.Controllers.PlatformManagement_related.ViewCategory import ViewCategoryController
-from app.Controllers.PlatformManagement_related.GenerateReportController import GenerateReportController
+from app.Controllers.PlatformManagement_related.GenerateReport import GenerateReportController
 from app.Boundaries.Login import login_required
 
-# Blueprint for all platform management API endpoints
 platform_api_bp = Blueprint('platform_api', __name__)
 
-# Service Categories API
+#37 Service Categories API, Verified.
 @platform_api_bp.route('/service-categories', methods=['GET'])
 @login_required
-def get_categories_api():
+def searchCategoriesApi():
     """Get all service categories or search by keyword"""
     try:
-        # Get search parameter
-        keyword = request.args.get('keyword', '')
+        # Get search parameters
+        name = request.args.get('name')
+        categoryId = request.args.get('category_id', type=int)
         page = int(request.args.get('page', 1))
         items_per_page = int(request.args.get('items_per_page', 10))
         
-        controller = SearchCategoryController() if keyword else ViewCategoryController()
+        controller = SearchCategoryController()
         
-        if keyword:
-            categories = controller.search_categories(keyword)
+        if name or categoryId:
+            categories = controller.searchCategories(categoryId=categoryId, name=name)
         else:
-            categories = controller.get_all_categories()
+            categories = controller.getAllCategories()
         
         # Implement pagination
         total = len(categories)
@@ -39,31 +39,31 @@ def get_categories_api():
             'total': total,
             'page': page,
             'items_per_page': items_per_page
-        })
+        }), 200
     except Exception as e:
         print(f"Error getting categories: {e}")
         return jsonify({"error": "Failed to get categories"}), 500
 
+#34 viewing category details.
 @platform_api_bp.route('/service-categories/<int:category_id>', methods=['GET'])
 @login_required
-def get_category_by_id(category_id):
+def getCategoryById(category_id):
     """Get a single service category by ID"""
     try:
         controller = ViewCategoryController()
-        category = controller.get_category_by_id(category_id)
-        
-        if not category:
-            return jsonify({"error": "Category not found"}), 404
-            
-        return jsonify(category)
+        category = controller.getCategoryById(category_id)
+        if category:
+            return jsonify(category), 200
+        else:
+            return jsonify({"error": "Service not found"}), 404
     except Exception as e:
         print(f"Error getting category: {e}")
         return jsonify({"error": "Failed to get category"}), 500
 
+#33 create service category
 @platform_api_bp.route('/service-categories', methods=['POST'])
 @login_required
-def create_category_api():
-    """Create a new service category"""
+def createCategoryApi():
     try:
         data = request.form
         name = data.get('name')
@@ -73,24 +73,21 @@ def create_category_api():
             return jsonify({"error": "Category name is required"}), 400
             
         controller = CreateCategoryController()
-        category_id = controller.create_category(name, description)
+        response = controller.createCategory(name=name, description=description)
         
-        if not category_id:
-            return jsonify({"error": "Failed to create category"}), 500
-            
-        return jsonify({
-            "success": True,
-            "message": "Category created successfully",
-            "id": category_id
-        }), 201
+        if response.get('success'):
+            return jsonify(response), 201
+        else:
+            return jsonify(response), 400
     except Exception as e:
         print(f"Error creating category: {e}")
         return jsonify({"error": "Server error"}), 500
 
+
+
 @platform_api_bp.route('/service-categories/<int:category_id>', methods=['PUT'])
 @login_required
-def update_category_api(category_id):
-    """Update an existing service category"""
+def updateCategoryApi(category_id):
     try:
         data = request.form
         name = data.get('name')
@@ -100,36 +97,29 @@ def update_category_api(category_id):
             return jsonify({"error": "Category name is required"}), 400
             
         controller = UpdateCategoryController()
-        success = controller.update_category(category_id, name, description)
+        response = controller.updateCategory(category_id, name, description)
         
-        if not success:
-            return jsonify({"error": "Failed to update category"}), 500
-            
-        return jsonify({
-            "success": True,
-            "message": "Category updated successfully"
-        })
+        if response.get('success'):
+            return jsonify(response), 200
+        else:
+            return jsonify(response), 400
     except Exception as e:
-        print(f"Error updating category: {e}")
+        print(f"Error updating user: {str(e)}")
         return jsonify({"error": "Server error"}), 500
 
+#36 delete service category
 @platform_api_bp.route('/service-categories/<int:category_id>', methods=['DELETE'])
 @login_required
-def delete_category_api(category_id):
-    """Delete a service category"""
+def deleteCategoryApi(category_id):
     try:
         controller = DeleteCategoryController()
-        success = controller.delete_category(category_id)
+        response= controller.deleteCategory(category_id)
         
-        if not success:
-            return jsonify({
-                "error": "Failed to delete category. It may be in use by existing services."
-            }), 400
-            
-        return jsonify({
-            "success": True,
-            "message": "Category deleted successfully"
-        })
+        if response.get('success'):
+            return jsonify(response), 200
+        else:
+            return jsonify(response), 403
+
     except Exception as e:
         print(f"Error deleting category: {e}")
         return jsonify({"error": "Server error"}), 500
@@ -137,32 +127,32 @@ def delete_category_api(category_id):
 # Reports API
 @platform_api_bp.route('/reports', methods=['GET'])
 @login_required
-def generate_report_api():
-    """Generate a service usage report"""
+def generateReportApi():
     try:
-        # Get report parameters
-        report_type = request.args.get('report_type', 'daily')
-        date_value = request.args.get('date_value', None)
-        group_by = request.args.get('group_by', 'category')
-        
-        # Validate parameters
-        valid_report_types = ['daily', 'weekly', 'monthly', 'custom']
-        valid_group_bys = ['category', 'service', 'cleaner', 'homeowner']
-        
-        if report_type not in valid_report_types:
-            return jsonify({"error": "Invalid report type"}), 400
-        
-        if group_by not in valid_group_bys:
-            return jsonify({"error": "Invalid grouping parameter"}), 400
-            
-        # Generate report
+        reportType = request.args.get('reportType', 'daily').lower()
+        dateValue = request.args.get('dateValue')
+        groupBy = request.args.get('groupBy', 'category').lower()
+
+        if not dateValue:
+            return jsonify({"error": "Missing required parameter: dateValue"}), 400
+
+        validReportTypes = ['daily', 'weekly', 'monthly']
+        validGroupBys = ['category', 'service', 'cleaner', 'homeowner']
+
+        if reportType not in validReportTypes:
+            return jsonify({"error": f"Invalid reportType. Choose from {validReportTypes}"}), 400
+
+        if groupBy not in validGroupBys:
+            return jsonify({"error": f"Invalid groupBy. Choose from {validGroupBys}"}), 400
+
         controller = GenerateReportController()
-        report_data = controller.generate_report(report_type, date_value, group_by)
-        
-        if not report_data:
+        result = controller.generateReport(reportType, dateValue, groupBy)
+
+        if result:
+            return jsonify(result), 200
+        else:
             return jsonify({"error": "Failed to generate report"}), 500
-            
-        return jsonify(report_data)
+        
     except Exception as e:
-        print(f"Error generating report: {e}")
-        return jsonify({"error": "Server error"}), 500 
+        print("Error generating report:", e)
+        return jsonify({"error": "Server error"}), 500

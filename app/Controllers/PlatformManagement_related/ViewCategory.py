@@ -1,10 +1,7 @@
 from app.Entities.serviceCategories import ServiceCategory
 
 class ViewCategoryController:
-    
-    def __init__(self):
-        pass
-    
+    #currently used by cleaner.
     def getAllCategories(self):
         try:
             return ServiceCategory.getCategoryNames()
@@ -13,18 +10,13 @@ class ViewCategoryController:
             return []
 
         
-    def get_category_by_id(self, id):
-        """
-        Find a category by its ID
-        
-        Args:
-            id (int): The ID of the category to find
-            
-        Returns:
-            ServiceCategory or None: The found category or None if not found
-        """
+    def getCategoryById(self, categoryId):
         try:
-            id = int(id)
-            return self.db.get_category_by_id(id)
-        except (ValueError, TypeError):
+            category = ServiceCategory.getCategoryById(categoryId)
+            if category:
+                return category.toDict()
+            else:
+                return None
+        except Exception as e:
+            print(f"[ViewCategoryController] Fetch Error: {e}")
             return None

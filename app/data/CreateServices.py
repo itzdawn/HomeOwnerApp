@@ -59,7 +59,7 @@ def viewTable():
     # print(services)
     print("Services:")
     for service in services:
-        print(f"CleanerID: [{service[1]}], Name: [{service[2]}], Category: [{service[4]}], Shortlists: [{service[6]}], Views: [{service[7]}]")
+        print(f"CleanerID: [{service[1]}], Name: [{service[3]}], Category: [{service[4]}], Shortlists: [{service[6]}], Views: [{service[7]}]")
         count += 1
     print(f"Total Services: {count}")
     conn.close()
@@ -71,17 +71,23 @@ def createFakeServices(ENTRIES):
     #getting all cleaner id
     cursor.execute("SELECT user.id FROM user JOIN user_profile ON user.profile_id = user_profile.id WHERE user_profile.name = 'Cleaner'")
     cleanerIds = [row[0] for row in cursor.fetchall()]
-    cursor.execute("SELECT * FROM service_category")
+    cursor.execute("SELECT id, name, description FROM service_category")
     result = cursor.fetchall()
-    categoryDict = {row[0]: row[1] for row in result}
+    categoryDict = {
+        row[0]: {
+            "name": row[1],
+            "description": row[2]
+        }
+        for row in result
+    }
     
     for x in range(ENTRIES):
         cleanerId = random.choice(cleanerIds)
         randomCategory = random.choice(list(categoryDict.items()))
         categoryId = randomCategory[0]
-        name = randomCategory[1]
-        description = name + "-" + str(datetime.now().strftime("%Y-%m-%d"))
-        price = random.randint(25,125)
+        name = randomCategory[1]['name']
+        description = categoryDict[1]["description"]
+        price = random.randint(15,125)
         shortlists = 0
         views = random.randint(0,70)
         creationDate = datetime.now().strftime("%Y-%m-%d")

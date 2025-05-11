@@ -6,15 +6,6 @@ class UpdateUserController:
         
     def updateUser(self, userId, username=None, profile=None, status=None, password=None):
         """
-        Update a user account
-        
-        Args:
-            userId (int): ID of the user to update
-            username (str, optional): New username
-            profile (str, optional): New profile
-            status (int, optional): New status (0=inactive, 1=active)
-            password (str, optional): New password (if being changed)
-            
         Returns:
             dict: Response with status and message
         """

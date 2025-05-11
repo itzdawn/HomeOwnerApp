@@ -6,9 +6,9 @@ from CreateCompletedServices import run as createCompletedServicesRun
 from CreateUsers import run as createUsersRun
 
 if __name__ == '__main__':
+    createUsersRun()
     createCategoryRun()
     createUserProfileRun()
-    #createUsersRun()
     createServicesRun()
     createShortlistsRun()
     createCompletedServicesRun()

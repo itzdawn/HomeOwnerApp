@@ -10,19 +10,21 @@ $(document).ready(function() {
     
     // Function to load categories with pagination and filtering
     function loadCategories(page = 1) {
-        const keyword = $('#categoryName').val();
+        const categoryName = $('#categoryName').val();  
+        const categoryId = $('#categoryId').val();    
         
         // Show loading indicator
         $('#categoryTableBody').html('<tr><td colspan="4" class="text-center">Loading categories...</td></tr>');
         
         // API call to get categories
         $.ajax({
-            url: '/api/service-categories',
+            url: '/api/platform/service-categories', 
             type: 'GET',
             data: {
-                keyword: keyword,
-                page: page,
-                items_per_page: itemsPerPage
+                name: categoryName,     
+                category_id: categoryId,      
+                page: page,                   
+                items_per_page: itemsPerPage 
             },
             success: function(response) {
                 const categories = response.categories || [];
@@ -112,7 +114,7 @@ $(document).ready(function() {
     // Function to view category details
     function viewCategory(categoryId) {
         $.ajax({
-            url: `/api/service-categories/${categoryId}`,
+            url: `/api/platform/service-categories/${categoryId}`,
             type: 'GET',
             success: function(category) {
                 // Populate modal with category details
@@ -141,7 +143,7 @@ $(document).ready(function() {
         $('#editCategoryId').val(categoryId);
         
         $.ajax({
-            url: `/api/service-categories/${categoryId}`,
+            url: `/api/platform/service-categories/${categoryId}`,
             type: 'GET',
             success: function(category) {
                 // Populate form with category details
@@ -158,13 +160,14 @@ $(document).ready(function() {
     
     // Function to save (create or update) category
     function saveCategory(isEdit, formData) {
-        const url = isEdit ? `/api/service-categories/${formData.id}` : '/api/service-categories';
+        const url = isEdit ? `/api/platform/service-categories/${formData.id}` : '/api/platform/service-categories';
         const method = isEdit ? 'PUT' : 'POST';
         
         $.ajax({
             url: url,
             type: method,
-            data: formData,
+            data: $.param(formData), 
+            contentType: 'application/x-www-form-urlencoded',
             success: function(response) {
                 showToast(`Category ${isEdit ? 'updated' : 'created'} successfully!`, true);
                 $('#categoryModal').modal('hide');
@@ -180,7 +183,7 @@ $(document).ready(function() {
     // Function to delete category
     function deleteCategory(categoryId) {
         $.ajax({
-            url: `/api/service-categories/${categoryId}`,
+            url: `/api/platform/service-categories/${categoryId}`,
             type: 'DELETE',
             success: function(response) {
                 showToast('Category deleted successfully!', true);
@@ -278,25 +281,28 @@ $(document).ready(function() {
     $('#saveCategoryBtn').on('click', function() {
         const categoryName = $('#modalCategoryName').val().trim();
         
+        // Check if category name is provided
         if (!categoryName) {
             showToast('Category name is required!', false);
             return;
         }
         
         const categoryId = $('#editCategoryId').val();
-        const isEdit = !!categoryId;
+        const isEdit = !!categoryId; // Check if this is an edit operation
         
+        // Prepare form data to send
         const formData = {
-            name: categoryName,
-            description: $('#modalCategoryDescription').val().trim()
+            name: categoryName,  // Name of the category
+            description: $('#modalCategoryDescription').val().trim()  // Description of the category
         };
         
+        // If this is an edit operation, include the ID
         if (isEdit) {
             formData.id = categoryId;
         }
-        
+        console.log('Form data:', formData); 
         saveCategory(isEdit, formData);
-    });
+    })
     
     // Event handler for confirm delete button
     $('#confirmDeleteBtn').on('click', function() {

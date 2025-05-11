@@ -13,10 +13,12 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../static/css/service-mgnt.css">
     <style>
-        .report-options .card { margin-bottom: 1rem; }
-        #report-results { margin-top: 2rem; }
-        #report-table th { background-color: #e9ecef; }
-        .chart-container { height: 400px; margin-bottom: 2rem; }
+        .report-options .card {margin-bottom: 1rem;}
+        #report-results {margin-top: 2rem;}
+        #report-table th {background-color: #e9ecef;}
+        .chart-container {width: 100%; min-height: 300px; margin-bottom: 2rem; position: relative;}
+        .chart-container canvas {width: 100% !important; height: 300px !important;}
+        html, body {height: 100%; overflow-x: hidden; overflow-y: auto;}
     </style>
 </head>
 <body>
@@ -34,7 +36,6 @@
                             <option value="daily">Daily Summary</option>
                             <option value="weekly">Weekly Summary</option>
                             <option value="monthly">Monthly Summary</option>
-                            <option value="custom">Custom Date Range</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -47,7 +48,7 @@
                             <option value="category">Category</option>
                             <option value="service">Service</option>
                             <option value="cleaner">Cleaner</option>
-                            <option value="homeowner">Home Owner</option>
+                            <option value="homeowner">Home Owner</option>   
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
@@ -63,14 +64,6 @@
         <div id="report-results" class="mt-4">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 id="report-title">Report Results</h5>
-                <div class="report-actions" style="display: none;">
-                    <button class="btn btn-outline-secondary btn-sm" id="exportCSVBtn">
-                        <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm ms-2" id="printReportBtn">
-                        <i class="bi bi-printer"></i> Print
-                    </button>
-                </div>
             </div>
             
             <div id="report-placeholder" class="text-center text-muted p-5 border rounded">
@@ -84,17 +77,19 @@
             
             <!-- Table will be populated dynamically -->
             <div class="table-container d-none mt-3" id="report-table-container">
-                <table class="table table-bordered table-sm" id="report-table">
-                    <thead>
-                        <!-- Table headers generated dynamically -->
-                    </thead>
-                    <tbody>
-                        <!-- Table rows generated dynamically -->
-                    </tbody>
-                    <tfoot>
-                        <!-- Optional Totals Row -->
-                    </tfoot>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="report-table">
+                        <thead>
+                            <!-- Table headers generated dynamically -->
+                        </thead>
+                        <tbody>
+                            <!-- Table rows generated dynamically -->
+                        </tbody>
+                        <tfoot>
+                            <!-- Optional Totals Row -->
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
