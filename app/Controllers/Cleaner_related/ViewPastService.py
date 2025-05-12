@@ -6,7 +6,10 @@ class ViewPastServiceController:
     
     def getPastServiceById(self, serviceId):
         try:
-            return CompletedService.getPastServiceById(serviceId)
+            result = CompletedService.getPastServiceById(serviceId)
+            if result:
+                result.pop("cleaner_name", None)
+            return result  #because entity method is used for both cleaner and homeowner.
         except Exception as e:
             print(f"[SearchPastServiceController] Error in getPastServiceById: {e}")
             return None

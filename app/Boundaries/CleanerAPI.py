@@ -8,7 +8,7 @@ from app.Controllers.Cleaner_related.UpdateService import UpdateServiceControlle
 from app.Controllers.Cleaner_related.SearchService import SearchServiceController
 from app.Controllers.Cleaner_related.SearchPastService import SearchPastServiceController
 from app.Controllers.Cleaner_related.ViewPastService import ViewPastServiceController
-from app.Boundaries.Login import login_required
+from app.Boundaries.Auth import login_required
 
 cleaner_api_bp = Blueprint('cleaner_api', __name__)
 
@@ -41,7 +41,7 @@ def createServiceApi():
             userId=userId,
             name=data.get('name'),
             description=data.get('description'),
-            category=data.get('category_id'),
+            categoryId=data.get('categoryId'),
             price=float(data.get('price', 0))
         )
 
@@ -64,7 +64,7 @@ def searchServicesApi():
 
         serviceId = request.args.get('service_id', type=int)
         serviceName = request.args.get('service_name')
-        categoryId = request.args.get('category_id')
+        categoryId = request.args.get('categoryId')
         page = int(request.args.get('page', 1))
         items_per_page = int(request.args.get('items_per_page', 10))
 
@@ -123,7 +123,7 @@ def updateServiceApi(service_id):
             userId=userId,
             name=data.get('name'),
             description=data.get('description'),
-            categoryId=data.get('category_id'),  # Updated to match frontend
+            categoryId=data.get('categoryId'),  # Updated to match frontend
             price=float(data.get('price', 0))
         )
 
@@ -169,7 +169,7 @@ def searchServiceHistoryApi():
     # Extract filters from query parameters
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
-    category_id = request.args.get("category_id", type=int)
+    categoryId = request.args.get("categoryId", type=int)
     completed_service_id = request.args.get("id", type=int)
     service_name = request.args.get("service_name")
 
@@ -180,14 +180,14 @@ def searchServiceHistoryApi():
     controller = SearchPastServiceController()
 
     try:
-        if not (start_date or end_date or category_id or completed_service_id or service_name):
+        if not (start_date or end_date or categoryId or completed_service_id or service_name):
             results = controller.getAllPastServices(userId)
         else:
             results = controller.searchPastServices(
                 cleanerId=userId,
                 startDate=start_date,
                 endDate=end_date,
-                categoryId=category_id,
+                categoryId=categoryId,
                 completedServiceId=completed_service_id,
                 name=service_name
             )

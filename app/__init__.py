@@ -10,13 +10,14 @@ def create_app():
     app.config['DATABASE'] = dbPath
     
     #import blueprints
-    from app.Boundaries.Login import auth_bp
+    from app.Boundaries.Auth import auth_bp
     from app.Boundaries.Admin import admin_bp
     from app.Boundaries.AdminAPI import admin_api_bp
     from app.Boundaries.Cleaner import cleaner_bp
     from app.Boundaries.CleanerAPI import cleaner_api_bp
     from app.Boundaries.LayoutPartials import layout_bp
     from app.Boundaries.HomeOwner import homeowner_bp
+    from app.Boundaries.HomeOwnerAPI import homeowner_api_bp
     from app.Boundaries.PlatformManagement import platform_bp
     from app.Boundaries.PlatformManagementAPI import platform_api_bp
 
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(cleaner_api_bp, url_prefix='/api/cleaner')
     app.register_blueprint(layout_bp, url_prefix='/partials')
     app.register_blueprint(homeowner_bp, url_prefix='/homeowner')
+    app.register_blueprint(homeowner_api_bp, url_prefix='/api/homeowner')
     app.register_blueprint(platform_bp, url_prefix='/platform')
     app.register_blueprint(platform_api_bp, url_prefix='/api/platform')
 

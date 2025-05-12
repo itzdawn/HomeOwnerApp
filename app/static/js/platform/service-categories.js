@@ -22,7 +22,7 @@ $(document).ready(function() {
             type: 'GET',
             data: {
                 name: categoryName,     
-                category_id: categoryId,      
+                categoryId: categoryId,      
                 page: page,                   
                 items_per_page: itemsPerPage 
             },

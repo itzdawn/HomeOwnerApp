@@ -1,13 +1,13 @@
 from app.Entities.service import Service
 
 class CreateServiceController:
-    def createService(self, userId, name, description, category, price):
+    def createService(self, userId, name, description, categoryId, price):
         try:
             service = Service(
                 userId=userId,
                 name=name,
                 description=description,
-                category=category,
+                categoryId=categoryId,
                 price=price
             )
             response = service.createService()

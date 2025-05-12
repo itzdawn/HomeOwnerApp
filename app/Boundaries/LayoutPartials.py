@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for
-from app.Boundaries.Login import login_required
+from app.Boundaries.Auth import login_required
 
 layout_bp = Blueprint('layout', __name__)
 

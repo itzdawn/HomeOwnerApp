@@ -19,21 +19,24 @@
         <div class="search-section">
             <form id="filterForm">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="serviceName" class="form-label">Service Name / Keyword</label>
-                        <input type="text" class="form-control" id="serviceName" placeholder="Filter by keyword">
+                    <div class="col-md-3">
+                        <label for="serviceName" class="form-label">Service Name</label>
+                        <input type="text" class="form-control" id="serviceName" placeholder="Filter by name" autocomplete='off'>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="dateRange" class="form-label">Date Range</label>
                         <input type="text" class="form-control" id="dateRange" placeholder="Select date range">
                     </div>
-                    <div class="col-md-2">
-                        <label for="cleanerName" class="form-label">Cleaner</label>
-                        <input type="text" class="form-control" id="cleanerName" placeholder="Filter by cleaner">
+                    <div class="col-md-3">
+                        <label for="categorySelect" class="form-label">Category</label>
+                        <select class="form-select" id="categorySelect">
+                            <option value="">All Categories</option>
+                            <!-- Categories will be loaded dynamically -->
+                        </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-3 d-flex align-items-end">
                         <button type="button" class="btn btn-primary w-100" id="filterBtn">
-                            <i class="bi bi-funnel"></i> Filter
+                            <i class="bi bi-funnel"></i> Search
                         </button>
                         <button type="button" class="btn btn-outline-secondary ms-2" id="resetBtn">
                             <i class="bi bi-arrow-counterclockwise"></i>
@@ -90,67 +93,26 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h6>Service Information</h6>
-                            <p><strong>Service Name:</strong> <span id="viewServiceName">Basic Home Cleaning</span></p>
-                            <p><strong>Category:</strong> <span id="viewCategory">Regular Cleaning</span></p>
-                            <p><strong>Description:</strong> <span id="viewDescription">Standard cleaning...</span></p>
-                            <p><strong>Price Paid:</strong> $<span id="viewPrice">80.00</span></p>
+                            <p><strong>Service Name:</strong> <span id="viewServiceName"></span></p>
+                            <p><strong>Category:</strong> <span id="viewCategory"></span></p>
+                            <p><strong>Description:</strong> <span id="viewDescription"></span></p>
+                            <p><strong>Price Paid:</strong> $<span id="viewPrice"></span></p>
                         </div>
                         <div class="col-md-6">
                             <h6>Booking & Cleaner Details</h6>
-                            <p><strong>Date Completed:</strong> <span id="viewDateCompleted">2023-10-26</span></p>
-                            <p><strong>Cleaner Name:</strong> <span id="viewCleanerName">John Doe</span></p>
-                            <p><strong>Booking ID:</strong> <span id="viewBookingId">B12345</span></p>
+                            <p><strong>Date Completed:</strong> <span id="viewDateCompleted"></span></p>
+                            <p><strong>Cleaner Name:</strong> <span id="viewCleanerName"></span></p>
                         </div>
                     </div>
                     <hr>
-                    <div id="feedbackSection">
-                        <h6>Your Feedback</h6>
-                        <div id="existingFeedback">
-                            <p id="viewFeedback">No feedback provided for this service.</p>
-                            <div id="viewRating" class="mb-3">
-                                <span class="me-2">Your Rating:</span>
-                                <i class="bi bi-star-fill text-warning"></i>
-                                <i class="bi bi-star-fill text-warning"></i>
-                                <i class="bi bi-star-fill text-warning"></i>
-                                <i class="bi bi-star text-warning"></i>
-                                <i class="bi bi-star text-warning"></i>
-                            </div>
-                        </div>
-                        <div id="addFeedbackForm" style="display: none;">
-                            <form id="feedbackForm">
-                                <div class="mb-3">
-                                    <label for="rating" class="form-label">Rating</label>
-                                    <div class="rating-input">
-                                        <i class="bi bi-star rating-star" data-value="1"></i>
-                                        <i class="bi bi-star rating-star" data-value="2"></i>
-                                        <i class="bi bi-star rating-star" data-value="3"></i>
-                                        <i class="bi bi-star rating-star" data-value="4"></i>
-                                        <i class="bi bi-star rating-star" data-value="5"></i>
-                                        <input type="hidden" id="ratingValue" value="0">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="feedback" class="form-label">Feedback</label>
-                                    <textarea class="form-control" id="feedback" rows="3" placeholder="Share your thoughts about this service"></textarea>
-                                </div>
-                                <button type="button" class="btn btn-primary" id="submitFeedbackBtn">Submit Feedback</button>
-                                <button type="button" class="btn btn-outline-secondary ms-2" id="cancelFeedbackBtn">Cancel</button>
-                            </form>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-primary" id="addFeedbackBtn">
-                        <i class="bi bi-chat-square-text"></i> Leave Feedback
-                    </button>
-                    <button type="button" class="btn btn-outline-success" id="rebookBtn" data-id="">
-                        <i class="bi bi-arrow-repeat"></i> Book Again
-                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Success/Error Toast -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">

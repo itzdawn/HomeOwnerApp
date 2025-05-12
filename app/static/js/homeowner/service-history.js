@@ -1,6 +1,6 @@
 /**
  * Service History Management for Home Owners
- * Handles filtering, viewing, rebooking and providing feedback for past services
+ * Handles filtering, viewing and providing feedback for past services
  */
 
 $(document).ready(function() {
@@ -18,23 +18,42 @@ $(document).ready(function() {
         maxDate: "today"
     });
     
+    function loadCategories() {
+        $.ajax({
+            url: '/api/cleaner/service-categories',
+            type: 'GET',
+            success: function(categories) {
+                const categorySelect = $('#categorySelect');
+                categorySelect.empty();
+                categorySelect.append('<option value="">All Categories</option>');
+
+                categories.forEach(category => {
+                    categorySelect.append(`<option value="${category.id}">${category.name}</option>`);
+                });
+            },
+            error: function(err) {
+                console.error('Failed to load categories:', err);
+            }
+        });
+    }
     // Function to load service history with pagination and filtering
     function loadServiceHistory(page = 1) {
         const keyword = $('#serviceName').val();
         const dateRange = $('#dateRange').val();
-        const cleanerName = $('#cleanerName').val();
+        const categoryId = $('#categorySelect').val();
         
         // Show loading indicator
         $('#historyTableBody').html('<tr><td colspan="6" class="text-center">Loading service history...</td></tr>');
         
         // API call to get service history
         $.ajax({
-            url: '/api/service-history',
+            url: '/api/homeowner/completed-services',
             type: 'GET',
             data: {
-                keyword: keyword,
-                date_range: dateRange,
-                cleaner_name: cleanerName,
+                service_name: keyword,
+                start_date: dateRange ? dateRange.split(" to ")[0] : null,
+                end_date: dateRange ? dateRange.split(" to ")[1] : null,
+                categoryId: $('#categorySelect').val(), 
                 page: page,
                 items_per_page: itemsPerPage
             },
@@ -61,11 +80,8 @@ $(document).ready(function() {
                             <td class="text-center">$${service.price.toFixed(2)}</td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-2">
-                                    <button class="btn btn-sm btn-outline-secondary view-btn" data-id="${service.id}" data-bs-toggle="modal" data-bs-target="#viewHistoryModal">
+                                    <button class="btn btn-sm btn-outline-secondary view-btn" data-id="${service.CompletedServiceId}" data-bs-toggle="modal" data-bs-target="#viewHistoryModal">
                                         <i class="bi bi-eye"></i> View Details
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-success rebook-list-btn" data-id="${service.id}">
-                                        <i class="bi bi-arrow-repeat"></i> Book Again
                                     </button>
                                 </div>
                             </td>
@@ -125,7 +141,7 @@ $(document).ready(function() {
     // Function to view service history details
     function viewServiceHistory(serviceId) {
         $.ajax({
-            url: `/api/service-history/${serviceId}`,
+            url: `/api/homeowner/service-history/${serviceId}`,
             type: 'GET',
             success: function(service) {
                 // Store current service ID for feedback
@@ -138,91 +154,12 @@ $(document).ready(function() {
                 $('#viewPrice').text(service.price.toFixed(2));
                 $('#viewDateCompleted').text(service.service_date);
                 $('#viewCleanerName').text(service.cleaner_name);
-                $('#viewBookingId').text(service.booking_id || 'N/A');
                 
-                // Set service ID for rebook button
-                $('#rebookBtn').data('id', service.service_id);
-                
-                // Handle feedback display
-                if (service.has_feedback) {
-                    // Show existing feedback
-                    $('#existingFeedback').show();
-                    $('#addFeedbackForm').hide();
-                    $('#addFeedbackBtn').hide();
-                    
-                    // Populate feedback & rating
-                    $('#viewFeedback').text(service.feedback || 'No comments provided.');
-                    
-                    // Update stars to reflect rating
-                    const stars = $('#viewRating i');
-                    stars.removeClass('bi-star-fill bi-star').addClass('bi-star');
-                    for (let i = 0; i < service.rating; i++) {
-                        $(stars[i]).removeClass('bi-star').addClass('bi-star-fill');
-                    }
-                } else {
-                    // Show option to add feedback
-                    $('#existingFeedback').hide();
-                    $('#addFeedbackForm').hide();
-                    $('#addFeedbackBtn').show();
-                }
             },
             error: function(error) {
                 console.error('Error loading service history details:', error);
                 $('#viewHistoryModal').modal('hide');
                 showToast('Failed to load service details. Please try again.', false);
-            }
-        });
-    }
-    
-    // Function to rebook a service
-    function rebookService(serviceId) {
-        $.ajax({
-            url: '/api/rebook-service',
-            type: 'POST',
-            data: { service_id: serviceId },
-            success: function(response) {
-                showToast('Service added to your cart for booking!', true);
-                // Optionally redirect to booking/checkout page
-                // window.location.href = '/booking/checkout'; 
-            },
-            error: function(error) {
-                console.error('Error rebooking service:', error);
-                showToast('Failed to rebook service. Please try again.', false);
-            }
-        });
-    }
-    
-    // Function to submit feedback
-    function submitFeedback(serviceId, rating, feedback) {
-        $.ajax({
-            url: '/api/service-feedback',
-            type: 'POST',
-            data: {
-                service_history_id: serviceId,
-                rating: rating,
-                feedback: feedback
-            },
-            success: function(response) {
-                showToast('Thank you for your feedback!', true);
-                
-                // Update the UI to show feedback
-                $('#existingFeedback').show();
-                $('#addFeedbackForm').hide();
-                $('#addFeedbackBtn').hide();
-                
-                // Update displayed feedback
-                $('#viewFeedback').text(feedback || 'No comments provided.');
-                
-                // Update stars to reflect rating
-                const stars = $('#viewRating i');
-                stars.removeClass('bi-star-fill bi-star').addClass('bi-star');
-                for (let i = 0; i < rating; i++) {
-                    $(stars[i]).removeClass('bi-star').addClass('bi-star-fill');
-                }
-            },
-            error: function(error) {
-                console.error('Error submitting feedback:', error);
-                showToast('Failed to submit feedback. Please try again.', false);
             }
         });
     }
@@ -273,65 +210,9 @@ $(document).ready(function() {
         viewServiceHistory(serviceId);
     });
     
-    // Event delegation for rebook button in list
-    $(document).on('click', '.rebook-list-btn', function() {
-        const serviceId = $(this).data('id');
-        rebookService(serviceId);
-    });
-    
-    // Event handler for rebook button in modal
-    $('#rebookBtn').on('click', function() {
-        const serviceId = $(this).data('id');
-        rebookService(serviceId);
-        $('#viewHistoryModal').modal('hide');
-    });
-    
-    // Event handler for add feedback button
-    $('#addFeedbackBtn').on('click', function() {
-        // Reset form
-        $('#ratingValue').val(0);
-        $('.rating-star').removeClass('bi-star-fill').addClass('bi-star');
-        $('#feedback').val('');
-        
-        // Show feedback form
-        $('#existingFeedback').hide();
-        $('#addFeedbackForm').show();
-    });
-    
-    // Event handler for cancel feedback button
-    $('#cancelFeedbackBtn').on('click', function() {
-        $('#addFeedbackForm').hide();
-        $('#addFeedbackBtn').show();
-    });
-    
-    // Event handler for rating stars
-    $(document).on('click', '.rating-star', function() {
-        const value = $(this).data('value');
-        $('#ratingValue').val(value);
-        
-        // Update stars UI
-        $('.rating-star').removeClass('bi-star-fill').addClass('bi-star');
-        $('.rating-star').each(function() {
-            if ($(this).data('value') <= value) {
-                $(this).removeClass('bi-star').addClass('bi-star-fill');
-            }
-        });
-    });
-    
-    // Event handler for submit feedback button
-    $('#submitFeedbackBtn').on('click', function() {
-        const rating = parseInt($('#ratingValue').val());
-        const feedback = $('#feedback').val().trim();
-        
-        if (rating === 0) {
-            showToast('Please select a rating.', false);
-            return;
-        }
-        
-        submitFeedback(currentServiceId, rating, feedback);
-    });
     
     // Initial load
+    loadCategories();
     loadServiceHistory();
     
     // Inform parent window about loaded height for iframe resizing

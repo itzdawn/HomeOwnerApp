@@ -11,7 +11,7 @@ $(document).ready(function() {
     // Function to load categories
     function loadCategories() {
         $.ajax({
-            url: '/api/service-categories',
+            url: '/api/cleaner/service-categories',
             type: 'GET',
             success: function(categories) {
                 const categorySelect = $('#serviceCategory');
@@ -39,11 +39,11 @@ $(document).ready(function() {
         
         // API call to get shortlisted services
         $.ajax({
-            url: '/api/shortlisted-services',
+            url: '/api/homeowner/shortlisted-services',
             type: 'GET',
             data: {
-                keyword: keyword,
-                category_id: categoryId,
+                service_name: keyword,
+                categoryId: categoryId,
                 page: page,
                 items_per_page: itemsPerPage
             },
@@ -64,7 +64,7 @@ $(document).ready(function() {
                         tableHtml += `
                         <tr>
                             <td>${service.name}</td>
-                            <td>${service.category_name}</td>
+                            <td>${service.categoryName}</td>
                             <td class="service-description">${service.description}</td>
                             <td class="text-center">$${service.price.toFixed(2)}</td>
                             <td class="text-center">
@@ -133,18 +133,16 @@ $(document).ready(function() {
     // Function to view service details
     function viewService(serviceId) {
         $.ajax({
-            url: `/api/shortlisted-services/${serviceId}`,
+            url: `/api/homeowner/shortlisted-services/${serviceId}`,
             type: 'GET',
             success: function(service) {
                 // Populate modal with service details
                 $('#viewServiceName').text(service.name);
-                $('#viewCleanerName').text(service.cleaner_name);
-                $('#viewCategory').text(service.category_name);
+                $('#viewCleanerName').text(service.cleanerName);
+                $('#viewCategory').text(service.categoryName);
                 $('#viewDescription').text(service.description);
                 $('#viewPrice').text(service.price.toFixed(2));
-                $('#viewDuration').text(service.duration);
-                $('#viewAvailability').text(service.availability === 'available' ? 'Available' : 'Unavailable');
-                $('#viewShortlistDate').text(service.shortlist_date);
+                $('#viewShortlistDate').text(service.shortlistDate);
                 
                 // Set service ID for remove button
                 $('.remove-from-view-btn').data('id', service.id);
@@ -161,7 +159,7 @@ $(document).ready(function() {
     // Function to remove a service from shortlist
     function removeShortlistedService(serviceId) {
         $.ajax({
-            url: `/api/shortlist/${serviceId}`,
+            url: `/api/homeowner/shortlist/${serviceId}`,
             type: 'DELETE',
             success: function(response) {
                 showToast('Service removed from shortlist successfully!', true);

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template
-from app.Boundaries.Login import login_required
+from app.Boundaries.Auth import login_required
 
 admin_bp = Blueprint('admin', __name__)
 

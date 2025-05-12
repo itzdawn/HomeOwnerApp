@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from app.Controllers.Admin_related.CreateUser import CreateUserController
 from app.Controllers.Admin_related.UpdateUser import UpdateUserController
 from app.Controllers.Admin_related.CreateUserProfile import CreateUserProfileController
@@ -7,7 +7,7 @@ from app.Controllers.Admin_related.ViewUser import ViewUserController
 from app.Controllers.Admin_related.ViewUserProfile import ViewUserProfileController
 from app.Controllers.Admin_related.SearchUser import SearchUserController
 from app.Controllers.Admin_related.SearchUserProfile import SearchUserProfileController
-from app.Boundaries.Login import login_required
+from app.Boundaries.Auth import login_required
 
 admin_api_bp = Blueprint('admin_api', __name__)
 

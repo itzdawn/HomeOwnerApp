@@ -86,7 +86,7 @@ $(document).ready(function() {
         console.log('Loading services with params:', {
             service_id: serviceId,
             service_name: serviceName,
-            category_id: categoryId,
+            categoryId: categoryId,
             page: page,
             items_per_page: itemsPerPage
         });
@@ -98,7 +98,7 @@ $(document).ready(function() {
             data: {
                 service_id: serviceId,
                 service_name: serviceName,
-                category_id: categoryId,
+                categoryId: categoryId,
                 page: page,
                 items_per_page: itemsPerPage
             },
@@ -143,11 +143,11 @@ $(document).ready(function() {
                 let tableHtml = '';
                 services.forEach(function(service) {
                     // Format date if available
-                    const creationDate = service.creation_date || 'N/A';
+                    const creationDate = service.creationDate || 'N/A';
                     // Get category name directly from the API response
                     const categoryName = service.categoryName || 'N/A';
                     
-                    console.log(`Service ${service.id} - Category Name: ${categoryName}, Category ID: ${service.category_id}`);
+                    console.log(`Service ${service.id} - Category Name: ${categoryName}, Category ID: ${service.categoryId}`);
                     
                     tableHtml += `
                     <tr>
@@ -209,7 +209,7 @@ $(document).ready(function() {
                 $('#viewPrice').text(parseFloat(service.price).toFixed(2));
                 $('#viewShortlists').text(service.shortlists || 0);
                 $('#viewViews').text(service.views || 0);
-                $('#viewCreationDate').text(service.creation_date || 'N/A');
+                $('#viewCreationDate').text(service.creationDate || 'N/A');
             },
             error: function(error) {
                 console.error('Error loading service details:', error);
@@ -237,7 +237,7 @@ $(document).ready(function() {
                 // Populate form with service details
                 $('#modalServiceID').val(service.id);
                 $('#modalServiceName').val(service.name);
-                $('#modalCategory').val(service.category_id);
+                $('#modalCategory').val(service.categoryId);
                 $('#modalDescription').val(service.description);
                 $('#modalPrice').val(parseFloat(service.price).toFixed(2));
                 
@@ -297,7 +297,7 @@ $(document).ready(function() {
         const serviceData = {
             name: serviceName,
             description: description,
-            category_id: categoryId,
+            categoryId: categoryId,
             price: price
         };
         

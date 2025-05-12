@@ -5,7 +5,7 @@ from app.Controllers.PlatformManagement_related.UpdateCategory import UpdateCate
 from app.Controllers.PlatformManagement_related.SearchCategory import SearchCategoryController
 from app.Controllers.PlatformManagement_related.ViewCategory import ViewCategoryController
 from app.Controllers.PlatformManagement_related.GenerateReport import GenerateReportController
-from app.Boundaries.Login import login_required
+from app.Boundaries.Auth import login_required
 
 platform_api_bp = Blueprint('platform_api', __name__)
 
@@ -17,7 +17,7 @@ def searchCategoriesApi():
     try:
         # Get search parameters
         name = request.args.get('name')
-        categoryId = request.args.get('category_id', type=int)
+        categoryId = request.args.get('categoryId', type=int)
         page = int(request.args.get('page', 1))
         items_per_page = int(request.args.get('items_per_page', 10))
         
@@ -45,13 +45,13 @@ def searchCategoriesApi():
         return jsonify({"error": "Failed to get categories"}), 500
 
 #34 viewing category details.
-@platform_api_bp.route('/service-categories/<int:category_id>', methods=['GET'])
+@platform_api_bp.route('/service-categories/<int:categoryId>', methods=['GET'])
 @login_required
-def getCategoryById(category_id):
+def getCategoryById(categoryId):
     """Get a single service category by ID"""
     try:
         controller = ViewCategoryController()
-        category = controller.getCategoryById(category_id)
+        category = controller.getCategoryById(categoryId)
         if category:
             return jsonify(category), 200
         else:
@@ -85,9 +85,9 @@ def createCategoryApi():
 
 
 
-@platform_api_bp.route('/service-categories/<int:category_id>', methods=['PUT'])
+@platform_api_bp.route('/service-categories/<int:categoryId>', methods=['PUT'])
 @login_required
-def updateCategoryApi(category_id):
+def updateCategoryApi(categoryId):
     try:
         data = request.form
         name = data.get('name')
@@ -97,7 +97,7 @@ def updateCategoryApi(category_id):
             return jsonify({"error": "Category name is required"}), 400
             
         controller = UpdateCategoryController()
-        response = controller.updateCategory(category_id, name, description)
+        response = controller.updateCategory(categoryId, name, description)
         
         if response.get('success'):
             return jsonify(response), 200
@@ -108,12 +108,12 @@ def updateCategoryApi(category_id):
         return jsonify({"error": "Server error"}), 500
 
 #36 delete service category
-@platform_api_bp.route('/service-categories/<int:category_id>', methods=['DELETE'])
+@platform_api_bp.route('/service-categories/<int:categoryId>', methods=['DELETE'])
 @login_required
-def deleteCategoryApi(category_id):
+def deleteCategoryApi(categoryId):
     try:
         controller = DeleteCategoryController()
-        response= controller.deleteCategory(category_id)
+        response= controller.deleteCategory(categoryId)
         
         if response.get('success'):
             return jsonify(response), 200

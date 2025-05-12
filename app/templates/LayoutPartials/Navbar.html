@@ -11,7 +11,7 @@
                     <span class="text-dark" id="user-profile-display">User</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuUser">
-                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                    <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                 </ul>
             </li>
         </ul>
@@ -79,5 +79,38 @@
     // Start observing when DOM is ready
     $(document).ready(function() {
         observer.observe(document.body, { childList: true, subtree: true });
+    });
+    $(document).ready(function() {
+        $("#navbar-placeholder").load("/partials/navbar", function(response, status) {
+            if (status === "error") {
+                console.error("Failed to load Navbar.");
+            } else {
+                // Explicitly bind logout event listener AFTER navbar loads successfully
+                $('#navbar-placeholder').on('click', '#logoutBtn', function(e) {
+                    e.preventDefault();
+                    console.log("Logout button clicked after navbar load.");
+
+                    fetch('/auth/logout', {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log("Logout response:", data);
+                        if (data.status === 'success') {
+                            localStorage.clear();
+                            window.location.href = '/';
+                        } else {
+                            console.error('Logout failed:', data.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Logout error:', err);
+                    });
+                });
+            }
+        });
+
+        $("#sidebar-placeholder").load("/partials/sidebar");
     });
 </script> 

@@ -10,24 +10,25 @@ $(document).ready(function() {
     
     // Function to load categories
     function loadCategories() {
-        // API call to get categories
-        $.ajax({
-            url: '/api/service-categories',
-            type: 'GET',
-            success: function(categories) {
-                const categorySelect = $('#serviceCategory');
-                categorySelect.empty();
-                categorySelect.append('<option value="">All categories</option>');
-                
-                // Add each category to dropdown
-                categories.forEach(function(category) {
-                    categorySelect.append(`<option value="${category.id}">${category.name}</option>`);
+        fetch("/api/cleaner/service-categories") 
+            .then(response => response.json())
+            .then(categories => {
+                const select = document.getElementById("serviceCategory");
+
+                // Clear and add default option
+                select.innerHTML = '<option value="">All categories</option>';
+
+                // Add each category as an option
+                categories.forEach(category => {
+                    const option = document.createElement("option");
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    select.appendChild(option);
                 });
-            },
-            error: function(error) {
-                console.error('Error loading categories:', error);
-            }
-        });
+            })
+            .catch(error => {
+                console.error("Failed to load categories:", error);
+            });
     }
     
     // Function to load services with pagination and filtering
@@ -40,11 +41,11 @@ $(document).ready(function() {
         
         // API call to get services
         $.ajax({
-            url: '/api/services',
+            url: '/api/homeowner/available-services',
             type: 'GET',
             data: {
-                keyword: keyword,
-                category_id: categoryId,
+                service_name: keyword, 
+                categoryId: categoryId,
                 page: page,
                 items_per_page: itemsPerPage
             },
@@ -65,7 +66,7 @@ $(document).ready(function() {
                         tableHtml += `
                         <tr>
                             <td>${service.name}</td>
-                            <td>${service.category_name}</td>
+                            <td>${service.categoryName}</td>
                             <td class="service-description">${service.description}</td>
                             <td class="text-center">$${service.price.toFixed(2)}</td>
                             <td class="text-center">
@@ -134,17 +135,15 @@ $(document).ready(function() {
     // Function to view service details
     function viewService(serviceId) {
         $.ajax({
-            url: `/api/services/${serviceId}`,
+            url: `/api/homeowner/services/${serviceId}`,
             type: 'GET',
             success: function(service) {
                 // Populate modal with service details
                 $('#viewServiceName').text(service.name);
-                $('#viewCleanerName').text(service.cleaner_name);
-                $('#viewCategory').text(service.category_name);
+                $('#viewCleanerName').text(service.cleanerName);
+                $('#viewCategory').text(service.categoryName);
                 $('#viewDescription').text(service.description);
                 $('#viewPrice').text(service.price.toFixed(2));
-                $('#viewDuration').text(service.duration);
-                $('#viewAvailability').text(service.availability === 'available' ? 'Available' : 'Unavailable');
                 
                 // Set service ID for shortlist button
                 $('.shortlist-from-view-btn').data('id', service.id);
@@ -160,15 +159,23 @@ $(document).ready(function() {
     // Function to shortlist a service
     function shortlistService(serviceId) {
         $.ajax({
-            url: '/api/shortlist',
+            url: '/api/homeowner/shortlist',
             type: 'POST',
             data: { service_id: serviceId },
+             contentType: 'application/x-www-form-urlencoded',
             success: function(response) {
                 showToast('Service shortlisted successfully!', true);
+                if (window.parent) {
+                    window.parent.postMessage({ type: 'refreshShortlist' }, '*');
+                }
             },
             error: function(error) {
                 console.error('Error shortlisting service:', error);
-                showToast('Failed to shortlist service. Please try again.', false);
+                let message = 'Failed to shortlist service. Please try again.';
+                if (error.responseJSON && error.responseJSON.error) {
+                    message = error.responseJSON.error;
+                }
+                showToast(message, false);
             }
         });
     }
@@ -177,18 +184,24 @@ $(document).ready(function() {
     function showToast(message, isSuccess) {
         const toastEl = document.getElementById('successToast');
         const toastHeader = toastEl.querySelector('.toast-header');
+        const icon = toastHeader.querySelector('i');
+        const title = toastHeader.querySelector('strong');
         const toast = new bootstrap.Toast(toastEl);
-        
+
         $('#toastMessage').text(message);
-        
+
         if (isSuccess) {
             toastHeader.classList.remove('bg-danger');
             toastHeader.classList.add('bg-success');
+            icon.className = 'bi bi-check-circle me-2';
+            title.textContent = 'Success';
         } else {
             toastHeader.classList.remove('bg-success');
             toastHeader.classList.add('bg-danger');
+            icon.className = 'bi bi-exclamation-triangle me-2';
+            title.textContent = 'Error';
         }
-        
+
         toast.show();
     }
     

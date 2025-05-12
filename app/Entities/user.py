@@ -21,7 +21,7 @@ class User:
         return self.__password
     def getId(self):
         return self.__id
-    
+        
     #insert new user to database
     def createUser(self):
         try:
@@ -80,6 +80,29 @@ class User:
             return False
         else:
             return True 
+    @staticmethod
+    def authenticate(username, password):
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            query = """
+                SELECT u.id, u.profile_id, u.status
+                FROM user u
+                WHERE u.username = ? AND u.password = ?
+            """
+            cursor.execute(query, (username, password))
+            row = cursor.fetchone()
+            conn.close()
+
+            if row and row["status"] == 1:
+                return True
+            return False
+
+        except Exception as e:
+            print(f"[User.authenticate] Error: {e}")
+            return False
     @staticmethod  
     def getAllUsers():
         try:

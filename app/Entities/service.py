@@ -33,12 +33,12 @@ class Service:
             "userId": self.getUserId(),
             "name": self.name,
             "description": self.description,
-            "category_id": self.categoryId,
+            "categoryId": self.categoryId,
             "price": self.price,
             "shortlists": self.shortlists,
             "views": self.views,
-            "creation_date": self.creationDate,
-            "categoryName": getattr(self, "categoryName", None)
+            "creationDate": self.creationDate,
+            "categoryName": getattr(self, "categoryName", None),
         }
 
     #insert to database.
@@ -81,7 +81,7 @@ class Service:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT s.*, sc.name as categoryName
+                SELECT s.*, sc.name as category_name
                 FROM service s
                 LEFT JOIN service_category sc ON s.category_id = sc.id
                 WHERE s.cleaner_id = ? AND s.is_deleted = 0
@@ -102,7 +102,7 @@ class Service:
                     views=result["views"],
                     creationDate=result["creation_date"]
                 )
-                service.categoryName = result["categoryName"]
+                service.categoryName = result["category_name"]
                 services.append(service)
             return services
         except Exception as e:
@@ -117,7 +117,7 @@ class Service:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT s.*, sc.name as categoryName
+                SELECT s.*, sc.name as category_name
                 FROM service s
                 LEFT JOIN service_category sc ON s.category_id = sc.id
                 WHERE s.id = ? AND s.is_deleted = 0
@@ -136,7 +136,7 @@ class Service:
                     views=result["views"],
                     creationDate=result["creation_date"]
                 )
-                service.categoryName = result["categoryName"]
+                service.categoryName = result["category_name"]
                 return service
             else:
                 print(f"DEBUG - Service {serviceId} not found")
@@ -144,7 +144,41 @@ class Service:
         except Exception as e:
             print(f"Error getting service by ID: {e}")
             return None
-        
+    
+    @staticmethod
+    def getAllServices():
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT s.*, sc.name as category_name
+                FROM service s
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+            """)
+            results = cursor.fetchall()
+            conn.close()
+            
+            services = []
+            for result in results:
+                service = Service(
+                    id=result["id"],
+                    userId=result["cleaner_id"],
+                    name=result["name"],
+                    description=result["description"],
+                    categoryId=result["category_id"],
+                    price=result["price"],
+                    shortlists=result["shortlists"],
+                    views=result["views"],
+                    creationDate=result["creation_date"]
+                )
+                service.categoryName = result["category_name"]
+                services.append(service)
+            return services
+        except Exception as e:
+            print(f"Error retrieving all services: {e}")
+            return []
+            
     @staticmethod
     def deleteService(serviceId, userId):
         """
@@ -179,7 +213,7 @@ class Service:
             cursor = conn.cursor()
 
             query = """
-                SELECT s.*, sc.name as categoryName
+                SELECT s.*, sc.name as category_name
                 FROM service s
                 LEFT JOIN service_category sc ON s.category_id = sc.id
                 WHERE s.is_deleted = 0
@@ -219,7 +253,7 @@ class Service:
                     views=result["views"],
                     creationDate=result["creation_date"]
                 )
-                service.categoryName = result["categoryName"]
+                service.categoryName = result["category_name"]
                 services.append(service)
             return services
             
@@ -227,3 +261,94 @@ class Service:
             print(f"Error filtering services: {e}")
             return []
 
+    @staticmethod
+    def searchAvailServices(serviceName=None, categoryId=None):
+        """
+        Returns:
+            list: List of Service objects matching category ID or service name
+        """
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row 
+            cursor = conn.cursor()
+
+            query = """
+                SELECT s.*, sc.name as category_name
+                FROM service s
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                WHERE s.is_deleted = 0
+            """
+            params = []
+
+            if categoryId:
+                query += " AND s.category_id = ?"
+                params.append(categoryId)
+
+            if serviceName:
+                query += " AND s.name LIKE ?"
+                params.append(f"%{serviceName}%")
+
+            cursor.execute(query, tuple(params))
+            results = cursor.fetchall()
+            conn.close()
+
+            services = []
+            for result in results:
+                service = Service(
+                    id=result["id"],
+                    userId=result["cleaner_id"],
+                    name=result["name"],
+                    description=result["description"],
+                    categoryId=result["category_id"],
+                    price=result["price"],
+                    shortlists=result["shortlists"],
+                    views=result["views"],
+                    creationDate=result["creation_date"]
+                )
+                service.categoryName = result["category_name"]
+                services.append(service)
+            return services
+
+        except Exception as e:
+            print(f"Error filtering services: {e}")
+            return []
+
+    @staticmethod
+    def getAvailServiceByServiceId(serviceId):
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT s.*, sc.name AS category_name, u.username AS cleaner_name
+                FROM service s
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                LEFT JOIN user u ON s.cleaner_id = u.id
+                WHERE s.id = ? AND s.is_deleted = 0
+            """, (serviceId,))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result:
+                return {
+                    "id": result["id"],
+                    "name": result["name"],
+                    "description": result["description"],
+                    "categoryId": result["category_id"],
+                    "categoryName": result["category_name"],
+                    "price": result["price"],
+                    "shortlists": result["shortlists"],
+                    "views": result["views"],
+                    "creationDate": result["creation_date"],
+                    "cleanerId": result["cleaner_id"],
+                    "cleanerName": result["cleaner_name"]
+                }
+            else:
+                print(f"DEBUG - Service {serviceId} not found")
+                return None
+
+        except Exception as e:
+            print(f"Error in getAvailServicesByServiceId: {e}")
+            return None

@@ -17,9 +17,9 @@
         <div class="search-section">
             <form id="searchForm">
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="serviceName" class="form-label">Service Name / Keyword</label>
-                        <input type="text" class="form-control" id="serviceName" placeholder="Enter keyword">
+                    <div class="col-md-4">
+                        <label for="serviceName" class="form-label">Service Name</label>
+                        <input type="text" class="form-control" id="serviceName" placeholder="Enter name" autocomplete='off'>
                     </div>
                     <div class="col-md-4">
                         <label for="serviceCategory" class="form-label">Category</label>
@@ -28,7 +28,7 @@
                             <!-- Options will be loaded dynamically -->
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-4 d-flex align-items-end">
                          <button type="button" class="btn btn-primary w-100" id="searchBtn">
                             <i class="bi bi-search"></i> Search
                         </button>
@@ -53,10 +53,6 @@
                     </tr>
                 </thead>
                 <tbody id="serviceTableBody">
-                    <!-- 
-                    Backend implementation notes:
-                    Use Jinja2 to iterate over services fetched from database
-                    -->
                     
                     <!-- Loading indicator row -->
                     <tr>
@@ -100,8 +96,6 @@
                              <p class="card-text">Category: <span id="viewCategory"></span></p>
                             <p class="card-text">Description: <span id="viewDescription"></span></p>
                             <p class="card-text">Price: $<span id="viewPrice"></span></p>
-                            <p class="card-text">Estimated Duration: <span id="viewDuration"></span> hours</p>
-                             <p class="card-text">Availability: <span id="viewAvailability"></span></p>
                          </div>
                     </div>
                 </div>

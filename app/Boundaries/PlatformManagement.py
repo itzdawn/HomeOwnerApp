@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from app.Boundaries.Login import login_required
+from app.Boundaries.Auth import login_required
 
 platform_bp = Blueprint('platform', __name__)
 

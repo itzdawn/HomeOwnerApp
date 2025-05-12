@@ -35,7 +35,7 @@ $(document).ready(function() {
         // Log the request params for debugging
        console.log('Loading service history with params:', {
             service_name: serviceName,
-            category_id: categoryId,
+            categoryId: categoryId,
             start_date: startDate,
             end_date: endDate,
             page: page,
@@ -48,7 +48,7 @@ $(document).ready(function() {
             type: 'GET',
             data: {
                 service_name: serviceName,
-                category_id: categoryId,
+                categoryId: categoryId,
                 start_date: startDate,
                 end_date: endDate,
                 page: page,
@@ -92,7 +92,7 @@ $(document).ready(function() {
                         data-id="${serviceId}"
                         data-name="${serviceName}"
                         data-category-name="${categoryName}"
-                        data-category-id="${service.category_id}"
+                        data-category-id="${service.categoryId}"
                         data-homeowner="${homeownerName}"
                         data-date="${serviceDateFormatted}">
                         

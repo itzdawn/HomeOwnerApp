@@ -178,6 +178,12 @@
                         return this.contentWindow === event.source;
                     }).height(event.data.height + 50); // Add some buffer
                 }
+                if (event.data && event.data.type === 'refreshShortlist') {
+                    const shortlistFrame = document.getElementById('shortlisted-frame');
+                    if (shortlistFrame) {
+                        shortlistFrame.contentWindow.location.reload();
+                    }
+                }
             }, false);
         });
     </script>

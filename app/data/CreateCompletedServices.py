@@ -58,28 +58,42 @@ def createFakeCompletedServices(ENTRIES):
     conn = getDb()
     cursor = conn.cursor()
     
-    #getting all ids
-    cursor.execute("""SELECT user.id FROM user JOIN user_profile 
-                   ON user.profile_id = user_profile.id WHERE user_profile.name = 'Cleaner'""")
+    # Get all IDs
+    cursor.execute("""SELECT user.id FROM user 
+                      JOIN user_profile ON user.profile_id = user_profile.id 
+                      WHERE user_profile.name = 'Cleaner'""")
     cleanerIds = [row[0] for row in cursor.fetchall()]
-    cursor.execute("""SELECT user.id FROM user JOIN user_profile 
-                   ON user.profile_id = user_profile.id WHERE user_profile.name = 'HomeOwner'""")
+    
+    cursor.execute("""SELECT user.id FROM user 
+                      JOIN user_profile ON user.profile_id = user_profile.id 
+                      WHERE user_profile.name = 'HomeOwner'""")
     homeownerIds = [row[0] for row in cursor.fetchall()]
+    
     cursor.execute("SELECT id FROM service")
     serviceIds = [row[0] for row in cursor.fetchall()]
-    
+
     for x in range(ENTRIES):
-        randomDays = random.randint(1,30)
         cleanerId = random.choice(cleanerIds)
         homeownerId = random.choice(homeownerIds)
         serviceId = random.choice(serviceIds)
+
         cursor.execute("SELECT creation_date FROM service WHERE id = ?", (serviceId,))
         result = cursor.fetchone()
+        if not result:
+            continue  
+
         creationDate = result[0]
         creationDateObj = datetime.strptime(creationDate, "%Y-%m-%d")
-        serviceDate = (creationDateObj + timedelta(days=randomDays)).date().isoformat()
-        insertCompletedService(cleanerId,homeownerId,serviceId,serviceDate) 
-    
+        now = datetime.now()
+
+        if now < creationDateObj:
+            continue
+
+        deltaDays = (now - creationDateObj).days
+        randomDays = random.randint(0, deltaDays)
+        serviceDate = (creationDateObj + timedelta(days=randomDays)).strftime("%Y-%m-%d")
+        insertCompletedService(cleanerId, homeownerId, serviceId, serviceDate)
+
     conn.commit()
     conn.close()
 

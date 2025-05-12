@@ -17,9 +17,9 @@
         <div class="search-section">
              <form id="filterForm">
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="serviceName" class="form-label">Service Name / Keyword</label>
-                        <input type="text" class="form-control" id="serviceName" placeholder="Filter by keyword">
+                    <div class="col-md-4">
+                        <label for="serviceName" class="form-label">Service Name</label>
+                        <input type="text" class="form-control" id="serviceName" placeholder="Filter by name" autocomplete='off'>
                     </div>
                     <div class="col-md-4">
                         <label for="serviceCategory" class="form-label">Category</label>
@@ -28,9 +28,9 @@
                             <!-- Options will be loaded dynamically -->
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-4 d-flex align-items-end">
                         <button type="button" class="btn btn-primary w-100" id="filterBtn">
-                            <i class="bi bi-funnel"></i> Filter
+                            <i class="bi bi-funnel"></i> Search
                         </button>
                         <button type="button" class="btn btn-outline-secondary ms-2" id="resetBtn">
                             <i class="bi bi-arrow-counterclockwise"></i>
@@ -90,8 +90,6 @@
                             <p class="card-text">Category: <span id="viewCategory">Category</span></p>
                             <p class="card-text">Description: <span id="viewDescription">Description</span></p>
                             <p class="card-text">Price: $<span id="viewPrice">0.00</span></p>
-                            <p class="card-text">Estimated Duration: <span id="viewDuration">0</span> hours</p>
-                            <p class="card-text">Availability: <span id="viewAvailability">Available</span></p>
                             <p class="card-text"><small class="text-muted">Shortlisted on: <span id="viewShortlistDate">01-01-2023</span></small></p>
                         </div>
                     </div>

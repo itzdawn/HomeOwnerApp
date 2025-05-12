@@ -89,7 +89,7 @@ class CompletedService:
             print("Error in generateReport:", e)
             return None
 
-        
+    #used by cleaner   
     @staticmethod
     def getAllPastServices(cleanerId):
         """
@@ -130,9 +130,10 @@ class CompletedService:
         except Exception as e:
             print(f"[getAllPastServices] Error: {str(e)}")
             return []
-        
+    
+    #used by cleaner    
     @staticmethod
-    def searchPastServices(cleanerId, startDate=None, endDate=None, category_id=None, name=None):
+    def searchPastServices(cleanerId, startDate=None, endDate=None, categoryId=None, name=None):
         conn = getDb()
         conn.row_factory = sqlite3.Row 
         cursor = conn.cursor()
@@ -165,9 +166,9 @@ class CompletedService:
         if endDate:
             query += " AND cs.service_date <= ?"
             params.append(endDate)
-        if category_id:
+        if categoryId:
             query += " AND s.category_id = ?"
-            params.append(category_id)
+            params.append(categoryId)
         if name:
             query += " AND LOWER(s.name) LIKE ?"
             params.append(f"%{name.lower()}%")
@@ -177,10 +178,10 @@ class CompletedService:
         conn.close()
 
         return [dict(result) for result in results]
-
+    
+    #used by cleaner and homeowner for viewing service details
     @staticmethod
     def getPastServiceById(serviceId):
-        conn = None
         try:
             conn = getDb()
             conn.row_factory = sqlite3.Row
@@ -198,20 +199,115 @@ class CompletedService:
                     s.price,
                     s.category_id,
                     sc.name AS category_name,
-                    u.username AS homeowner_name,
+                    u1.username AS cleaner_name,
+                    u2.username AS homeowner_name,
                     s.creation_date
                 FROM completed_service cs
                 JOIN service s ON cs.service_id = s.id
                 LEFT JOIN service_category sc ON s.category_id = sc.id
-                LEFT JOIN user u ON cs.homeowner_id = u.id
+                LEFT JOIN user u1 ON cs.cleaner_id = u1.id
+                LEFT JOIN user u2 ON cs.homeowner_id = u2.id
                 WHERE cs.id = ?
             """
 
             cursor.execute(query, (serviceId,))
-            row = cursor.fetchone()
+            result = cursor.fetchone()
             conn.close()
-            return dict(row) if row else None
+
+            return dict(result) if result else None
 
         except Exception as e:
-            print(f"[CompletedService.getPastServiceById] Error: {e}")
+            print(f"[getPastServiceById] Error: {str(e)}")
             return None
+        
+    #used by homeowner    
+    @staticmethod
+    def getAllCompletedServices(homeownerId):
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            query = """
+                SELECT 
+                    cs.id AS CompletedServiceId,
+                    cs.cleaner_id,
+                    cs.homeowner_id,
+                    cs.service_id,
+                    cs.service_date,
+                    s.name,
+                    s.description,
+                    s.price,
+                    s.category_id,
+                    sc.name AS category_name,
+                    u.username AS cleaner_name,
+                    s.creation_date
+                FROM completed_service cs
+                JOIN service s ON cs.service_id = s.id
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                LEFT JOIN user u ON cs.cleaner_id = u.id
+                WHERE cs.homeowner_id = ?
+                ORDER BY cs.service_date DESC
+            """
+
+            cursor.execute(query, (homeownerId,))
+            results = cursor.fetchall()
+            conn.close()
+            return [dict(result) for result in results]
+
+        except Exception as e:
+            print(f"[getAllCompletedServices] Error: {e}")
+            return []
+        
+    #used by homeowner
+    @staticmethod
+    def searchCompletedServices(homeownerId, startDate=None, endDate=None, categoryId=None, name=None):
+        try:
+            conn = getDb()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            query = """ 
+                SELECT 
+                    cs.id AS CompletedServiceId,
+                    cs.cleaner_id,
+                    cs.homeowner_id,
+                    cs.service_id,
+                    cs.service_date,
+                    s.name,
+                    s.description,
+                    s.price,
+                    s.category_id,
+                    sc.name as category_name,
+                    u.username as cleaner_name,
+                    s.creation_date
+                FROM completed_service cs
+                JOIN service s ON cs.service_id = s.id
+                LEFT JOIN service_category sc ON s.category_id = sc.id
+                LEFT JOIN user u ON cs.cleaner_id = u.id
+                WHERE cs.homeowner_id = ?
+            """
+
+            params = [homeownerId]
+            if startDate:
+                query += " AND cs.service_date >= ?"
+                params.append(startDate)
+            if endDate:
+                query += " AND cs.service_date <= ?"
+                params.append(endDate)
+            if categoryId:
+                query += " AND s.category_id = ?"
+                params.append(categoryId)
+            if name:
+                query += " AND LOWER(s.name) LIKE ?"
+                params.append(f"%{name.lower()}%")
+
+            query += " ORDER BY cs.service_date DESC"
+            cursor.execute(query, tuple(params))
+            results = cursor.fetchall()
+            conn.close()
+
+            return [dict(result) for result in results]
+        except Exception as e:
+            print(f"[searchCompletedServices] Error: {str(e)}")
+            return []

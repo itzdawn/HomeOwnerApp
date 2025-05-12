@@ -1,39 +1,27 @@
-from flask import request, jsonify, session
+from flask import jsonify
 from app.Entities.shortlist import Shortlist
 
-class ShortlistServicesController:
-    @staticmethod
-    def add_to_shortlist():
-        """Add a service to the shortlist."""
+class ShortlistController:
+    def addShortlist(self, homeOwnerId, serviceId):
         try:
-            homeowner_id = session.get('userId')
-            service_id = request.json.get('service_id')
+            success = Shortlist.addShortlist(homeOwnerId, serviceId)
 
-            if not homeowner_id or not service_id:
-                return jsonify({"error": "Missing required fields"}), 400
-
-            success = Shortlist.add_to_shortlist(homeowner_id, service_id)
             if success:
-                return jsonify({"message": "Service added to shortlist successfully."}), 200
+                return {"success": True, "message": "Service shortlisted successfully!"}
             else:
-                return jsonify({"error": "Service could not be added to shortlist. It may already be shortlisted."}), 400
+                return {"success": False, "message": "Service already shortlisted or failed to add."}
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
-
-    @staticmethod
-    def remove_from_shortlist():
-        """Remove a service from the shortlist."""
+            print(f"[ShortlistController] Error: {e}")
+            return {"success": False, "message": "Unexpected error occurred"}
+    
+    def removeShortlist(self, homeOwnerId, serviceId):
         try:
-            homeowner_id = session.get('userId')
-            service_id = request.json.get('service_id')
-
-            if not homeowner_id or not service_id:
-                return jsonify({"error": "Missing required fields"}), 400
-
-            success = Shortlist.remove_from_shortlist(homeowner_id, service_id)
+            success = Shortlist.removeShortlist(homeOwnerId, serviceId)
             if success:
-                return jsonify({"message": "Service removed from shortlist successfully."}), 200
+                return {"success": True, "message": "Service removed from shortlist successfully!"}
             else:
-                return jsonify({"error": "Service could not be removed from shortlist. It may not exist."}), 400
+                return {"success": False, "message": "Service not found in shortlist or already removed."}
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            print(f"[ShortlistController] Error: {e}")
+            return {"success": False, "message": "Unexpected error occurred"}
+    
