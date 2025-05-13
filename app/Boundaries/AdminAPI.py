@@ -77,7 +77,7 @@ def updateUserApi(userId):
         response = controller.updateUser(
             userId=userId,
             username=data.get('username'),
-            profile=data.get('profile'),
+            profileName=data.get('profile'),
             status=int(data.get('status', 1))
         )
         if response.get('success'):

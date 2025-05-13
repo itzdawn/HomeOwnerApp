@@ -3,8 +3,10 @@ from app.Entities.user import User
 class LoginAuthController:
 
     def login(self, username, password):
-        if not User.authenticate(username, password):
-            return {"success": False, "message": "Invalid credentials or suspended account"}
+        
+        authResult = User.authenticate(username, password)
+        if not authResult["success"]:
+            return authResult 
 
         user = User.getUser(username)
 

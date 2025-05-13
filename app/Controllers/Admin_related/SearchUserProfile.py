@@ -14,7 +14,8 @@ class SearchUserProfileController:
         
     def getAllProfiles(self):
         try:
-            return UserProfile.getAllProfiles()
+            profiles = UserProfile.getAllProfiles()
+            return [p.toDict() for p in profiles]
         except Exception as e:
             print(f"[Error]: unable to retrieve user profiles: {str(e)}")
             return []

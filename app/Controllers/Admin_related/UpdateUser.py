@@ -1,14 +1,8 @@
 from app.Entities.user import User
 
 class UpdateUserController:
-    def __init__(self):
-        pass
-        
-    def updateUser(self, userId, username=None, profile=None, status=None, password=None):
-        """
-        Returns:
-            dict: Response with status and message
-        """
+
+    def updateUser(self, userId, username=None, profileName=None, status=None, password=None):
         try:
             #check if user exists
             user = User.getUserById(userId)
@@ -16,7 +10,7 @@ class UpdateUserController:
                 return {"success": False, "message": "User not found"}
             
             #protect system admin accounts
-            if user.profileName == "Admin" and profile != "Admin":
+            if user.profileName == "Admin" and profileName != "Admin":
                 return {"success": False, "message": "Cannot change profile of Administrator account"}
             
             #check if username already exists (if changing username)
@@ -25,23 +19,9 @@ class UpdateUserController:
                 if existingUser and existingUser.getId() != userId:
                     return {"success": False, "message": "Username already exists"}
             
-            #Update user fields
-            if username:
-                user.username = username
-            if profile:
-                user.profileId = user.getProfileIndex(profile)
-            if status is not None:
-                user.status = status
-            if password:
-                user.setPassword(password)
-            
-            result = user.updateUser()
-            
-            if result:
-                return {"success": True, "message": "User updated successfully"}
-            else:
-                return {"success": False, "message": "Failed to update user"}
-                
+            #Update user fields if all validation is ok.
+            return user.updateUser(username=username, password=password, profileName=profileName, status=status )
+
         except Exception as e:
             print(f"Error updating user: {str(e)}")
             return {"success": False, "message": f"Error: {str(e)}"}

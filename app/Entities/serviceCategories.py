@@ -28,28 +28,38 @@ class ServiceCategory:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO service_category (name, description) VALUES (?,?)", (self.name, self.description))
             conn.commit()
+            if cursor.rowcount == 0:
+                conn.close()
+                return {"message": f"Unable to create service category: {self.name}", "success": False}
             conn.close()
-            return True
+            return {"message": f"Service Category: {self.name} created successfully", "success": True}
+            
         except Exception as e:
             print(f"Error creating service category: {str(e)}")
-            return False
+            return {"success": False, "message": f"Error: {str(e)}"}
 
-    def updateCategory(self):
+    def updateCategory(self, name=None, description=None):
         try:
+            name = name or self.name
+            description = description or self.description
+            
             conn = getDb()
             cursor = conn.cursor()
-
             cursor.execute("""
                 UPDATE service_category 
                 SET name = ?, description = ?
                 WHERE id = ?
-            """, (self.name, self.description, self.getId()))
+            """, (name, description, self.getId()))
             conn.commit()
+            
+            if cursor.rowcount == 0:
+                conn.close()
+                return {"success": False, "message": "Failed to update category"}
             conn.close()
-            return True
+            return {"success": True, "message": "Category updated successfully"}
         except Exception as e:
             print(f"Error updating service category: {str(e)}")
-            return False
+            return {"success": False, "message": f"Error: {str(e)}"}
      
     @staticmethod   
     def getCategoryById(categoryId):
@@ -154,9 +164,12 @@ class ServiceCategory:
             cursor.execute("DELETE FROM service_category WHERE id = ?", (categoryId,))
             rowcount = cursor.rowcount
             conn.commit()
-            conn.close
-            return rowcount > 0
+            if rowcount > 0:
+                conn.close()
+                return {"success": True, "message": "Service Category deleted successfully"} 
+            conn.close()
+            return {"success": False, "message": "Failed to delete service category"}
         except Exception as e:
             print(f"Error in delete category: {e}")
-            return False
+            return {"success": False, "message": f"Error: {str(e)}"}
     

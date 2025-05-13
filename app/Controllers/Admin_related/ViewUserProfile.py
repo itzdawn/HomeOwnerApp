@@ -5,8 +5,4 @@ class ViewUserProfileController:
         pass
     
     def getProfileById(self, profileId):
-        userProfile = UserProfile.getProfileById(profileId)
-        if userProfile:
-            return userProfile.toDict()
-        else:
-            return None
+        return UserProfile.getProfileById(profileId).toDict()

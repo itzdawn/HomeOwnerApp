@@ -80,8 +80,6 @@ def searchServicesApi():
         end_idx = start_idx + items_per_page
         services_data = services[start_idx:end_idx]
 
-        if services_data:
-            print(f"[DEBUG] First service dict: {services_data[0]}")
         return jsonify({"services": services_data, "total": total_count}), 200
 
     except Exception as e:

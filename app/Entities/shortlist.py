@@ -19,54 +19,6 @@ class Shortlist:
         return self.__homeOwnerId
     def getServiceId(self):
         return self.__serviceId
-    
-    @staticmethod
-    def add_to_shortlist(homeowner_id, service_id):
-        """Add a service to the homeowner's shortlist and update counters."""
-        conn = getDb()
-        cursor = conn.cursor()
-        try:
-            # Insert into shortlist table
-            cursor.execute(
-                """INSERT INTO shortlist (homeowner_id, service_id, shortlist_date) 
-                VALUES (?, ?, DATE('now'))""",
-                (homeowner_id, service_id)
-            )
-            # Update service.shortlists counter
-            cursor.execute(
-                "UPDATE service SET shortlists = shortlists + 1 WHERE id = ?",
-                (service_id,)
-            )
-            conn.commit()
-            return True
-        except sqlite3.IntegrityError:  # Duplicate or invalid IDs
-            conn.rollback()
-            return False
-        finally:
-            conn.close()
-
-    @staticmethod
-    def remove_from_shortlist(homeowner_id, service_id):
-        """Remove a service from the homeowner's shortlist."""
-        conn = getDb()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                "DELETE FROM shortlist WHERE homeowner_id = ? AND service_id = ?",
-                (homeowner_id, service_id)
-            )
-            # Update service.shortlists counter
-            cursor.execute(
-                "UPDATE service SET shortlists = MAX(0, shortlists - 1) WHERE id = ?",
-                (service_id,)
-            )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception as e:
-            conn.rollback()
-            raise e
-        finally:
-            conn.close()
 
     @staticmethod
     def searchShortlistedServices(homeownerId, serviceName=None, categoryId=None):
@@ -207,28 +159,41 @@ class Shortlist:
             conn = getDb()
             cursor = conn.cursor()
 
+            #Check if already shortlisted
             cursor.execute("""
                 SELECT id FROM shortlist
                 WHERE homeowner_id = ? AND service_id = ?
             """, (homeOwnerId, serviceId))
-            
-            #check if already shortlisted.
-            if cursor.fetchone():
-                return False  
 
+            if cursor.fetchone():
+                conn.close()
+                return {"success": False, "message": "Service already shortlisted."}
+
+            # Insert into shortlist
             cursor.execute("""
                 INSERT INTO shortlist (homeowner_id, service_id, shortlist_date)
                 VALUES (?, ?, DATE('now'))
             """, (homeOwnerId, serviceId))
+            insertCount = cursor.rowcount
+
+            # Update counter
+            cursor.execute("""
+                UPDATE service SET shortlists = shortlists + 1
+                WHERE id = ?
+            """, (serviceId,))
 
             conn.commit()
+
+            if insertCount == 0:
+                conn.close()
+                return {"success": False, "message": "Failed to shortlist the service."}
             conn.close()
-            return True
+            return {"success": True, "message": "Service shortlisted successfully!"}
 
         except Exception as e:
             print(f"[Shortlist.addShortlist] Error: {e}")
-            return False
-        
+            return {"success": False, "message": "Unexpected error occurred"}
+
     #currently not in user story.    
     @staticmethod
     def removeShortlist(homeOwnerId, serviceId):
@@ -236,16 +201,29 @@ class Shortlist:
             conn = getDb()
             cursor = conn.cursor()
 
+            #Delete from shortlist
             cursor.execute("""
                 DELETE FROM shortlist
                 WHERE homeowner_id = ? AND service_id = ?
             """, (homeOwnerId, serviceId))
+            deleteCount = cursor.rowcount
 
-            conn.commit()
-            rows_affected = cursor.rowcount
-            conn.close()
+            if deleteCount > 0:
+                cursor.execute("""
+                    UPDATE service
+                    SET shortlists = CASE 
+                        WHEN shortlists > 0 THEN shortlists - 1
+                        ELSE 0
+                    END
+                    WHERE id = ?
+                """, (serviceId,))
+                conn.commit()
+                conn.close()
+                return {"success": True, "message": "Service removed from shortlist successfully!"}
+            else:
+                conn.close()
+                return {"success": False, "message": "Service not found in shortlist or already removed."}
 
-            return rows_affected > 0
         except Exception as e:
             print(f"[Shortlist Entity] Error removing shortlist: {e}")
-            return False
+            return {"success": False, "message": "Unexpected error occurred"}

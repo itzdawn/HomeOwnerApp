@@ -78,7 +78,7 @@ $(document).ready(function() {
                 $('#editMode').val('edit');
                 $('#userId').val(user.id);
                 $('#modalAccountID').val(user.id);
-                $('#modalUsername').val(user.username).prop('readonly', true);
+                $('#modalUsername').val(user.username)
                 $('#modalUserProfile').val(user.profile);
                 $('#modalStatus').val(user.status);
                 $('.password-fields').hide();
@@ -275,6 +275,11 @@ $(document).ready(function() {
                 $('#accountModal').modal('hide');
                 showSuccessToast(mode === 'create' ? 'Account created successfully!' : 'Account updated successfully!');
                 loadUsers();
+                if (mode === 'edit') {
+                    const userId = $('#userId').val();
+                    loadUserDetails(userId);      
+                    loadUserDetailsForView(userId); 
+                }
             },
             error: function(xhr, status, error) {
                 showMessage('Error', 'Operation failed: ' + getErrorMessage(xhr, error), 'danger');

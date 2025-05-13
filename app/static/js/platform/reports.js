@@ -74,7 +74,7 @@ $(document).ready(function() {
                 generateChart(reportData);
                 
                 // Generate table
-                generateTable(reportData);
+                generateTable(reportData, groupBy);
             },
             error: function(error) {
                 console.error('Error generating report:', error);
@@ -128,101 +128,53 @@ $(document).ready(function() {
     }
     
     // Function to generate table
-    function generateTable(reportData) {
+    function generateTable(reportData, groupBy) {
         const $tableHead = $('#report-table thead');
         const $tableBody = $('#report-table tbody');
         const $tableFoot = $('#report-table tfoot');
-        
+
         $tableHead.empty();
         $tableBody.empty();
         $tableFoot.empty();
-        
+
+        // Clone and modify headers
+        const headers = [...reportData.headers];
+        if (groupBy === 'cleaner') {
+            headers[headers.length - 1] = 'Total Services Done';
+        }
+
         // Populate Headers
         let headerHtml = '<tr>';
-        reportData.headers.forEach(header => {
+        headers.forEach(header => {
             headerHtml += `<th>${header}</th>`;
         });
         headerHtml += '</tr>';
         $tableHead.append(headerHtml);
-        
+
         // Populate Rows
         reportData.rows.forEach(row => {
             let rowHtml = '<tr>';
             row.forEach((cell, index) => {
-                // Format price columns with $ for better readability
-                if (index > 0 && reportData.headers[index].toLowerCase().includes('revenue')) {
-                    rowHtml += `<td>$${parseFloat(cell).toFixed(2)}</td>`;
-                } else {
-                    rowHtml += `<td>${cell}</td>`;
-                }
+                rowHtml += `<td>${cell}</td>`;
             });
             rowHtml += '</tr>';
             $tableBody.append(rowHtml);
         });
-        
+
         // Populate Totals
         if (reportData.totals && reportData.totals.length > 0) {
             let footerHtml = '<tr>';
             reportData.totals.forEach((total, index) => {
-                if (index === 0) {
-                    footerHtml += `<th>${total}</th>`;
-                } else if (reportData.headers[index].toLowerCase().includes('revenue')) {
-                    footerHtml += `<th>$${parseFloat(total).toFixed(2)}</th>`;
-                } else {
-                    footerHtml += `<th>${total}</th>`;
-                }
+                footerHtml += `<th>${total}</th>`;
             });
             footerHtml += '</tr>';
             $tableFoot.append(footerHtml);
         }
-        
-        // Show table container
+
         $('#report-table-container').removeClass('d-none');
     }
-    
-    // Function to export table to CSV
-    function exportTableToCSV(filename) {
-        const rows = [];
-        const $table = document.getElementById('report-table');
-        
-        // Get headers
-        const headerRow = [];
-        const headers = $table.querySelectorAll('thead th');
-        headers.forEach(header => headerRow.push('"' + header.innerText.replace(/"/g, '""') + '"'));
-        rows.push(headerRow.join(','));
-        
-        // Get data rows
-        const dataRows = $table.querySelectorAll('tbody tr');
-        dataRows.forEach(row => {
-            const rowData = [];
-            const cells = row.querySelectorAll('td');
-            cells.forEach(cell => rowData.push('"' + cell.innerText.replace(/"/g, '""') + '"'));
-            rows.push(rowData.join(','));
-        });
-        
-        // Get footer
-        const footerRows = $table.querySelectorAll('tfoot tr');
-        footerRows.forEach(row => {
-            const rowData = [];
-            const cells = row.querySelectorAll('th');
-            cells.forEach(cell => rowData.push('"' + cell.innerText.replace(/"/g, '""') + '"'));
-            rows.push(rowData.join(','));
-        });
-        
-        // Create CSV content
-        const csvContent = rows.join('\n');
-        
-        // Create download link
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+
+     
     
     
     // Event handler for report type change

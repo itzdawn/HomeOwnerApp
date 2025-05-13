@@ -121,7 +121,6 @@ $(document).ready(function() {
                 $('#viewCategoryID').text(category.id);
                 $('#viewCategoryName').text(category.name);
                 $('#viewCategoryDescription').text(category.description || 'No description provided.');
-                $('#viewCategoryServices').text(category.service_count || 0);
                 
                 // Set category ID for edit button
                 $('.edit-from-view-btn').data('id', category.id);

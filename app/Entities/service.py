@@ -43,35 +43,45 @@ class Service:
 
     #insert to database.
     def createService(self):
-        conn = getDb()
-        cursor = conn.cursor()
         try:
+            conn = getDb()
+            cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO service (cleaner_id, category_id, name, description, price, shortlists, views, creation_date)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (self.getUserId(), self.categoryId, self.name, self.description, self.price, self.shortlists, self.views, self.creationDate))
             conn.commit()
+            if cursor.rowcount == 0:
+                conn.close()
+                return {"message": f"Unable to create Service: {self.name}", "success": False}
             conn.close()
-            return True
+            return {"message": f"Service: {self.name} created successfully", "success": True}
         except Exception as e:
-            print(f"Error creating service: {e}")
-            return False
+            print(f"[CreateServiceController] Error: {e}")
+            return {"success": False, "message": f"Error: {str(e)}"}
         
-    def updateService(self):
+    def updateService(self, name=None, description=None, price=None):
         try:
+            #use existing values if parameters are not provided
+            name = name or self.name
+            description = description or self.description
+            price = price if price is not None else self.price
+            
             conn = getDb()
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE service
                 SET category_id = ?, name = ?, description = ?, price = ?
                 WHERE id = ? AND cleaner_id = ?
-            """, (self.categoryId, self.name, self.description, self.price, self.getId(), self.getUserId()))
+            """, (self.categoryId, name, description, price, self.getId(), self.getUserId()))
             conn.commit()
             conn.close()
-            return True
+            if cursor.rowcount == 0:
+                return {"success": False, "message": "Failed to update user"}
+            return {"success": True, "message": "Service updated successfully"}
         except Exception as e:
             print(f"Error updating service: {e}")
-            return False
+            return {"success": False, "message": f"Error: {str(e)}"}
     
     #retrieve service info by cleanerId from db, return type: list of service objects
     @staticmethod
@@ -139,7 +149,6 @@ class Service:
                 service.categoryName = result["category_name"]
                 return service
             else:
-                print(f"DEBUG - Service {serviceId} not found")
                 return None
         except Exception as e:
             print(f"Error getting service by ID: {e}")
@@ -196,10 +205,12 @@ class Service:
             rowcount = cursor.rowcount
             conn.commit()
             conn.close()
-            return rowcount > 0 #return true is >0 rows are affected.
+            if rowcount > 0:
+                return {"success": True, "message": "Service deleted successfully"}
+            return {"success": False, "message": "Failed to delete service"}
         except Exception as e:
             print(f"Error in deleteService: {e}")
-            return False
+            return {"success": False, "message": f"Error: {str(e)}"}
     
     @staticmethod
     def searchServices(userId=None, serviceId=None, serviceName=None, categoryId=None):
@@ -346,7 +357,6 @@ class Service:
                     "cleanerName": result["cleaner_name"]
                 }
             else:
-                print(f"DEBUG - Service {serviceId} not found")
                 return None
 
         except Exception as e:

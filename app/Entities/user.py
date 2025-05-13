@@ -7,13 +7,13 @@ def getDb():
     return conn
 
 class User:
-    def __init__(self, username=None, password=None, profileId=None, status=None, id=None):
+    def __init__(self, username=None, password=None, profileName=None, profileId=None, status=None, id=None):
         self.__id = id
         self.username = username
         self.__password = password
         self.profileId = profileId
         self.status = status
-        self.profileName = None #store profile name here for easier access.
+        self.profileName = profileName
 
     def setPassword(self, password):
         self.__password = password
@@ -21,21 +21,6 @@ class User:
         return self.__password
     def getId(self):
         return self.__id
-        
-    #insert new user to database
-    def createUser(self):
-        try:
-            conn = getDb()
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO user (username, password, profile_id, status) VALUES (?, ?, ?, ?)", 
-                        (self.username, self.getPassword(), self.profileId, self.status))
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            print(f"Error creating user: {str(e)}")
-            return False
-        
     def toDict(self):
         return {
             'id': self.getId(),
@@ -43,43 +28,88 @@ class User:
             'profile': self.profileName,
             'status': self.status
         }
+    #methods for internal use---------------------------------------------------------------------------------
     
-    def updateUser(self):
-        try:
-            conn = getDb()
-            cursor = conn.cursor()
+    #to derive profile index from profile name, prepares the proper data for creating user in db
+    def _getProfileIndex(self, profileName):
+        conn = getDb()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM user_profile WHERE name = ?", (profileName,))
+        result = cursor.fetchone()
+        conn.close()
+        if result:
+            return result[0]
+        else:
+            return None
 
-            cursor.execute("""
-                UPDATE user 
-                SET username = ?, password = ?, profile_id = ?, status = ?
-                WHERE id = ?
-            """, (self.username, self.getPassword(), self.profileId, self.status, self.getId()))
-
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            print(f"Error updating user: {str(e)}")
-            return False
-        
-    @staticmethod
-    def isValidName(username):
-        return len(username) > 0 #ensures username must contain at least 1 character.
-    @staticmethod
-    def isValidPass(password):
-        return len(password) >= 7
-    @staticmethod
-    def isUsernameTaken(username):
+    def _isUsernameTaken(self, username):
         conn = getDb()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE username = ?", (username,))
         result = cursor.fetchone()
         conn.close()
-        
-        if result == None:
-            return False
+        if result:
+            return True
         else:
-            return True 
+            return False
+            
+    
+    
+    #end of internal methods ------------------------------------------------------------------------------------------
+    
+    #basically uses created User's constructor to insert into db
+    def createUser(self):
+        try:
+            if self._isUsernameTaken(self.username):
+                return {"message": "Username already taken", "status": "error"}
+            if self.profileId == None:
+                self.profileId = self._getProfileIndex(self.profileName)
+                if self.profileId is None:
+                    return {"message": f"Invalid profile: {self.profileName}", "success": False}
+            
+            with getDb() as conn:
+                cursor = conn.cursor()
+                cursor.execute("INSERT INTO user (username, password, profile_id, status) VALUES (?, ?, ?, ?)", 
+                            (self.username, self.getPassword(), self.profileId, self.status))
+                conn.commit()
+                
+                #if insertion somehow didn't occur
+                if cursor.rowcount == 0:
+                    return {"message": f"Unable to create User: {self.username}", "success": False}
+                else:
+                    return {"message": f"User: {self.username} created successfully", "success": True}
+        except Exception as e:
+            print(f"Error creating user: {str(e)}")
+            return {"success": False, "message": f"Error: {str(e)}"}
+
+    def updateUser(self, username=None, password=None, profileName=None, status=None):
+        try:
+            #use existing values if parameters are not provided
+            username = username or self.username
+            password = password or self.getPassword()
+            profileId = self._getProfileIndex(profileName) or self.profileId
+            status = status if status is not None else self.status
+            
+            conn = getDb()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE user 
+                SET username = ?, password = ?, profile_id = ?, status = ?
+                WHERE id = ?
+            """, (username, password, profileId, status, self.getId()))
+
+            conn.commit()
+            if cursor.rowcount == 0:
+                conn.close()
+                return {"success": False, "message": "No user was updated."}
+            conn.close()
+            return {"success": True, "message": "User updated successfully"}
+        except Exception as e:
+            print(f"Error updating user: {str(e)}")
+            return {"success": False, "message": f"Error: {str(e)}"}
+    
+
+    
     @staticmethod
     def authenticate(username, password):
         try:
@@ -97,18 +127,18 @@ class User:
             conn.close()
 
             if row and row["status"] == 1:
-                return True
-            return False
+                return {"success": True, "message": "Authentication successful"}
+            return {"success": False, "message": "Account is suspended"}
 
         except Exception as e:
             print(f"[User.authenticate] Error: {e}")
-            return False
+            return {"success": False, "message": "Unexpected error occurred during authentication"}
     @staticmethod  
     def getAllUsers():
         try:
             conn = getDb()
             c = conn.cursor()
-            c.execute("""SELECT user.id, user.username, user.status, user_profile.name 
+            c.execute("""SELECT user.id, user.username, user.password, user.status, user_profile.id, user_profile.name 
                     FROM user
                     JOIN user_profile
                     ON user.profile_id = user_profile.id""")
@@ -117,28 +147,18 @@ class User:
             
             userList = []
             for user in users:
-                userInfo = {
-                    'id': user[0],  #user id
-                    'username': user[1],  #username
-                    'profile': user[3],  #profile
-                    'status': user[2]
-                }
-                userList.append(userInfo)
+                userObj = User(
+                    id=user[0],
+                    username=user[1],
+                    password=user[2],
+                    profileId=user[4],
+                    status=user[3],
+                    profileName=user[5]
+                )
+                userList.append(userObj)
             return userList
         except Exception as e:
             print(f"[ERROR] Error retrieving users: {str(e)}")
-            return None
-    
-    @staticmethod
-    def getProfileIndex(profile):
-        conn = getDb()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM user_profile WHERE name = ?", (profile,))
-        result = cursor.fetchone()
-        conn.close()
-        if result:
-            return result[0]
-        else:
             return None
         
     #retrieve user info from db, used by login controller.
@@ -155,11 +175,12 @@ class User:
         conn.close()
         
         if result:
-            user = User(id=result[0], username=result[1], password=result[2], profileId=result[3], status=result[4])
-            user.profileName = result[5]
+            user = User(id=result[0], username=result[1], password=result[2], profileId=result[3], status=result[4], profileName=result[5])
             return user
         else:
-            return None 
+            return None
+        
+    #for getting user (obj) from userId
     @staticmethod
     def getUserById(userId):
         try:
@@ -176,8 +197,7 @@ class User:
             conn.close()
             
             if result:
-                user = User(id=result[0], username=result[1], password=result[2], profileId=result[3], status=result[4])
-                user.profileName = result[5]
+                user = User(id=result[0], username=result[1], password=result[2], profileId=result[3], status=result[4], profileName=result[5])
                 return user
             else:
                 return None
@@ -221,9 +241,9 @@ class User:
                     username=result[1],
                     password=result[2],
                     profileId=result[3],
-                    status=result[4]
+                    status=result[4],
+                    profileName = result[5]
                 )
-                user.profileName = result[5]
                 users.append(user)
             return users
         
