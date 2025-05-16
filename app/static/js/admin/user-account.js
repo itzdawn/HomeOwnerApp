@@ -3,6 +3,7 @@ $(document).ready(function() {
 
     function initializePage() {
         console.log("Initializing user account page");
+        loadProfile();
         loadUsers();
         initializeFormValidation();
         initializeEventHandlers();
@@ -57,6 +58,7 @@ $(document).ready(function() {
 
     function resetForm(mode) {
         if (mode === 'create') {
+            loadProfile();
             $('#accountModalLabel').text('Create Account');
             $('#editMode').val('create');
             $('#userId').val('');
@@ -66,6 +68,29 @@ $(document).ready(function() {
             $('#modalConfirmPassword').prop('required', true);
             $('#modalUsername').prop('readonly', false);
         }
+    }
+
+    function loadProfile() {
+        $.ajax({
+            url: API_ENDPOINTS.GET_PROFILES,
+            type: 'GET',
+            dataType: 'json',
+            success: function(profiles) {
+                const $profileSelect = $('#modalUserProfile');
+                $profileSelect.empty();
+                $profileSelect.append('<option value="">Select Profile</option>');
+
+                profiles
+                    .filter(profile => profile.status === 1)
+                    .forEach(profile => {
+                        $profileSelect.append(`<option value="${profile.name}">${profile.name}</option>`);
+                    });
+            },
+            error: function(xhr, status, error) {
+                console.error('Raw response:', xhr.responseText);
+                showMessage('Error', 'Failed to load profile options: ' + error, 'danger');
+            }
+        });
     }
 
     function loadUserDetails(userId) {
