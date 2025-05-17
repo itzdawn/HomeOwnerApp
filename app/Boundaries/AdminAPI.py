@@ -78,7 +78,8 @@ def updateUserApi(userId):
             userId=userId,
             username=data.get('username'),
             profileName=data.get('profile'),
-            status=int(data.get('status', 1))
+            status=int(data.get('status', 1)),
+            password=data.get('password')
         )
         if response.get('success'):
             return jsonify(response), 200

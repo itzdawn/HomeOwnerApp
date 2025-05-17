@@ -54,6 +54,17 @@ $(document).ready(function() {
                 loadUserDetails(userId);
             }
         });
+        
+        $('#changePasswordCheckbox').change(function() {
+            if ($(this).is(':checked')) {
+                $('.password-fields').show();
+                $('#modalPassword').prop('required', true);
+                $('.confirm-password-field').hide();
+            } else {
+                $('.password-fields').hide();
+                $('#modalPassword').prop('required', false).val('');
+            }
+        });
     }
 
     function resetForm(mode) {
@@ -67,6 +78,8 @@ $(document).ready(function() {
             $('#modalPassword').prop('required', true);
             $('#modalConfirmPassword').prop('required', true);
             $('#modalUsername').prop('readonly', false);
+            $('.user-id-field').hide();
+            $('.password-toggle').hide();
         }
     }
 
@@ -102,13 +115,21 @@ $(document).ready(function() {
                 $('#accountModalLabel').text('Edit Account');
                 $('#editMode').val('edit');
                 $('#userId').val(user.id);
-                $('#modalAccountID').val(user.id);
-                $('#modalUsername').val(user.username)
+                
+                // Display user ID (read-only)
+                $('.user-id-field').show();
+                $('#modalDisplayUserId').val(user.id);
+                
+                $('#modalUsername').val(user.username);
                 $('#modalUserProfile').val(user.profile);
                 $('#modalStatus').val(user.status);
-                $('.password-fields').hide();
+                
+                // Show password field but hide confirm password in edit mode
+                $('.password-fields').show();
+                $('.confirm-password-field').hide();
                 $('#modalPassword').prop('required', false).val('');
                 $('#modalConfirmPassword').prop('required', false).val('');
+                
                 $('#accountModal').modal('show');
             },
             error: function(xhr, status, error) {
@@ -272,6 +293,7 @@ $(document).ready(function() {
         if (!username) return showMessage('Status', 'Username is required', 'danger');
         if (!profile) return showMessage('Status', 'Profile is required', 'danger');
 
+        // Password validation
         if (mode === 'create') {
             if (!password) return showMessage('Status', 'Password is required for new accounts', 'danger');
             if (password !== confirmPassword) return showMessage('Status', 'Passwords do not match', 'danger');
@@ -283,7 +305,10 @@ $(document).ready(function() {
             status: parseInt(status)
         };
 
-        if (mode === 'create') userData.password = password;
+        // Add password to userData if provided
+        if (password) {
+            userData.password = password;
+        }
 
         let apiUrl = mode === 'create' ? API_ENDPOINTS.CREATE_USER : API_ENDPOINTS.UPDATE_USER + userId;
         let method = mode === 'create' ? 'POST' : 'PUT';

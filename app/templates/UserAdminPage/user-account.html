@@ -156,16 +156,19 @@
                     <form id="accountForm" action="/api/admin/users" method="post">
                         <input type="hidden" id="editMode" name="editMode" value="create">
                         <input type="hidden" id="userId" name="userId" value="">
+                        <div class="mb-3 user-id-field" style="display: none;">
+                            <label for="modalDisplayUserId" class="form-label">User ID</label>
+                            <input type="text" class="form-control" id="modalDisplayUserId" readonly>
+                        </div>
                         <div class="mb-3">
                             <label for="modalUsername" class="form-label">Username</label>
                             <input type="text" class="form-control" id="modalUsername" name="username" placeholder="Enter username" autocomplete="off" required>
-                            <!-- <small class="form-text text-muted">This will be used for login</small> -->
                         </div>
                         <div class="mb-3 password-fields">
                             <label for="modalPassword" class="form-label">Password</label>
                             <input type="password" class="form-control" id="modalPassword" name="password" placeholder="Enter password" required>
                         </div>
-                        <div class="mb-3 password-fields">
+                        <div class="mb-3 password-fields confirm-password-field">
                             <label for="modalConfirmPassword" class="form-label">Confirm Password</label>
                             <input type="password" class="form-control" id="modalConfirmPassword" placeholder="Confirm password" required>
                         </div>
