@@ -1,0 +1,9 @@
+Platform Management (8)
+#33 As platform management I want to create service categories so to allow users to access different services
+#35 As platform management I want to update service categories to add or edit the details of service categories
+#37 As platform management I want to search for service categories to ensure all service categories are successfully created
+#34 As platform management I want to view service categories to ensure they have their details listed properly
+#36 As platform management I want to delete services so that I can remove unnecessary service categories
+#40 As platform management I want to generate daily reports of services used so that I can view the data for further analysis
+#42 As platform management I want to generate weekly reports of services used so that I can view the data for further analysis
+#43 As platform management I want to generate monthly reports of services used so that I can view the data for further analysis

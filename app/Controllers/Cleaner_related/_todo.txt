@@ -1,0 +1,17 @@
+#11 As a cleaner I want to create my services so that users can view my available services
+
+#13 As a cleaner I want to update my services so that I can add or remove any details under my service
+
+#14 As a cleaner I want to delete my service so that I can stop offering that service
+
+#15 As a cleaner I want to search for my services to ensure it can be seen by potential buyers
+
+
+#12 As a cleaner I want to view my listed services so that I can ensure my services are correctly listed
+#16 As a cleaner I want to view the number of views on my services so that I know which services are in demand
+#17 As a cleaner I want to view the number of shortlists on my services so I can understand the demand for each service
+
+
+#18 As a cleaner I want to search for past services done filtered by date or service type so that I can search for a specific past job
+#19 As a cleaner I want to view the past services done filtered by date or service type so that I can view the details of past job
+    
