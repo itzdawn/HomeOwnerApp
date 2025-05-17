@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, session
+from flask import Blueprint, render_template, session, redirect, url_for
+from app.Boundaries.Auth import login_required
 
 layout_bp = Blueprint('layout', __name__)
 
@@ -9,14 +10,22 @@ def navbar():
 
 @layout_bp.route('/sidebar', methods=['GET'])
 def sidebar():
-    # Get user role from session and render appropriate sidebar
-    role = session.get('userRole', '').lower()
+    # Get user profile from session and render appropriate sidebar
+    profile = session.get('userProfile', '')
+    if not profile:
+        # No profile in session → redirect to login page
+        return redirect(url_for('index'))
     
-    if role == 'admin':
+    # Convert profile to lowercase for consistent comparison
+    profile = profile.lower()
+    
+    if profile == 'admin':
         return render_template('LayoutPartials/AdminSidebar.html')
-    elif role == 'cleaner':
+    elif profile == 'cleaner':
         return render_template('LayoutPartials/CleanerSidebar.html')
-    elif role == 'homeowner':
+    elif profile == 'homeowner':
         return render_template('LayoutPartials/HomeownerSidebar.html')
-    elif role == 'platform':
-        return render_template('LayoutPartials/PlatformSidebar.html')
+    elif profile == 'platformmanagement':
+        return render_template('LayoutPartials/PlatformManagementSidebar.html')
+    else:
+        return redirect(url_for('index'))
