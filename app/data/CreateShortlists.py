@@ -1,8 +1,10 @@
 import sqlite3
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
+import os
 
-DATABASE = 'app.db'
+baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DATABASE= os.path.join(baseDir, 'data', 'app.db')
 ENTRIES = 100 #Number of entries generated.
 
 #DB connection
@@ -71,29 +73,64 @@ def createFakeShortlists(ENTRIES):
     conn = getDb()
     cursor = conn.cursor()
     
-    #getting all ids
-    cursor.execute("SELECT id FROM user WHERE role = 'HomeOwner'")
+    # Get all HomeOwner IDs
+    cursor.execute("""
+        SELECT user.id FROM user 
+        JOIN user_profile ON user.profile_id = user_profile.id 
+        WHERE user_profile.name = 'HomeOwner'
+    """)
     homeownerIds = [row[0] for row in cursor.fetchall()]
-    cursor.execute("SELECT id FROM service")
-    serviceIds = [row[0] for row in cursor.fetchall()]
-    
-    for x in range(ENTRIES):
+
+    # Get all service IDs and creation dates
+    cursor.execute("SELECT id, creation_date FROM service")
+    services = cursor.fetchall()
+    serviceDict = {row[0]: datetime.strptime(row[1], "%Y-%m-%d") for row in services}
+
+    inserted_count = 0
+    max_attempts = ENTRIES * 10  
+    attempts = 0
+
+    while inserted_count < ENTRIES and attempts < max_attempts:
         homeownerId = random.choice(homeownerIds)
-        serviceId = random.choice(serviceIds)
-        creationDate = datetime.now().strftime("%d-%m-%Y")
+        serviceId = random.choice(list(serviceDict.keys()))
+        serviceCreationDate = serviceDict[serviceId]
+        now = datetime.now()
+
+        if serviceCreationDate > now:
+            attempts += 1
+            continue  
+        
+        #generate a shortlist date between creation date and now
+        total_days = (now - serviceCreationDate).days
+        shortlist_date_obj = serviceCreationDate + timedelta(days=random.randint(0, total_days))
+        shortlistDate = shortlist_date_obj.strftime("%d-%m-%Y")
+
         cursor.execute("""
             SELECT 1 FROM shortlist WHERE homeowner_id = ? AND service_id = ?
         """, (homeownerId, serviceId))
         exists = cursor.fetchone()
+
         if not exists:
-            insertShortlist(homeownerId, serviceId, creationDate)
+            insertShortlist(homeownerId, serviceId, shortlistDate)
             updateShortlistCount(serviceId)
+            inserted_count += 1
         else:
             print("Duplicate combination.")
-        
-    
+
+        attempts += 1
+
+    conn.commit()
+    conn.close()
+
+
+def run():
+    dropTable()
+    createShortlistTables()
+    createFakeShortlists(ENTRIES)
+    viewTable()
+      
 if __name__ == '__main__':
-    # dropTable()
-    # createShortlistTables()
-    # createFakeShortlists(ENTRIES)
+    dropTable()
+    createShortlistTables()
+    createFakeShortlists(ENTRIES)
     viewTable()

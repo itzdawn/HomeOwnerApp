@@ -1,8 +1,10 @@
 import sqlite3
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
+import os
 
-DATABASE = 'app.db'
+baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DATABASE= os.path.join(baseDir, 'data', 'app.db')
 ENTRIES = 100 #Number of entries generated.
 
 #DB connection
@@ -23,6 +25,7 @@ def createServiceTables():
         shortlists INTEGER DEFAULT 0,
         views INTEGER DEFAULT 0,
         creation_date TEXT NOT NULL,
+        is_deleted INTEGER DEFAULT 0,
         FOREIGN KEY (cleaner_id) REFERENCES user(id),
         FOREIGN KEY (category_id) REFERENCES service_category(id)
     );""")
@@ -39,11 +42,11 @@ def dropServiceTable():
     print("Service table dropped.")
     conn.close()
        
-def insertService(cleanerId, categoryId, name, description, price, shortlists, views, creationDate):
+def insertService(cleanerId, category_id, name, description, price, shortlists, views, creationDate):
     conn = getDb()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO service (cleaner_id, category_id, name, description, price, shortlists, views, creation_date) VALUES (?,?,?,?,?,?,?,?)", 
-                   (cleanerId, categoryId, name, description, price, shortlists, views, creationDate))
+                   (cleanerId, category_id, name, description, price, shortlists, views, creationDate))
     conn.commit()
     conn.close()
 
@@ -56,7 +59,7 @@ def viewTable():
     # print(services)
     print("Services:")
     for service in services:
-        print(f"CleanerID: [{service[1]}], Name: [{service[2]}], Category: [{service[4]}], Shortlists: [{service[6]}], Views: [{service[7]}]")
+        print(f"CleanerID: [{service[1]}], Name: [{service[3]}], Category: [{service[4]}], Shortlists: [{service[6]}], Views: [{service[7]}]")
         count += 1
     print(f"Total Services: {count}")
     conn.close()
@@ -66,29 +69,42 @@ def createFakeServices(ENTRIES):
     cursor = conn.cursor()
     
     #getting all cleaner id
-    cursor.execute("SELECT id FROM user WHERE role = 'Cleaner'")
+    cursor.execute("SELECT user.id FROM user JOIN user_profile ON user.profile_id = user_profile.id WHERE user_profile.name = 'Cleaner'")
     cleanerIds = [row[0] for row in cursor.fetchall()]
-    cursor.execute("SELECT * FROM service_category")
+    cursor.execute("SELECT id, name, description FROM service_category")
     result = cursor.fetchall()
-    categoryDict = {row[0]: row[1] for row in result}
+    categoryDict = {
+        row[0]: {
+            "name": row[1],
+            "description": row[2]
+        }
+        for row in result
+    }
     
     for x in range(ENTRIES):
         cleanerId = random.choice(cleanerIds)
         randomCategory = random.choice(list(categoryDict.items()))
-        categoryId = randomCategory[0]
-        name = randomCategory[1] + " Cleaning"
-        description = name + "-" + str(datetime.now().strftime("%d-%m-%Y"))
-        price = random.randint(25,125)
+        category_id = randomCategory[0]
+        name = randomCategory[1]['name']
+        description = randomCategory[1]["description"]
+        price = random.randint(15,125)
         shortlists = 0
         views = random.randint(0,70)
-        creationDate = datetime.now().strftime("%d-%m-%Y")
-        insertService(cleanerId,categoryId,name,description,price,shortlists,views,creationDate)
+        start_date = datetime(2025, 4, 1)
+        end_date = datetime.now()
+        random_days = random.randint(0, (end_date - start_date).days)
+        creationDate = (start_date + timedelta(days=random_days)).strftime("%Y-%m-%d")
+        insertService(cleanerId,category_id,name,description,price,shortlists,views,creationDate)
     
     conn.commit()
     conn.close()
-    
+def run():
+    dropServiceTable()
+    createServiceTables()
+    createFakeServices(ENTRIES)
+    viewTable()
 if __name__ == '__main__':
-    # dropServiceTable()
-    # createServiceTables()
-    # createFakeServices(ENTRIES)
+    dropServiceTable()
+    createServiceTables()
+    createFakeServices(ENTRIES)
     viewTable()

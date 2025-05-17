@@ -1,6 +1,9 @@
 import sqlite3
+import os
+import json
 
-DATABASE = 'app.db'
+baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DATABASE= os.path.join(baseDir, 'data', 'app.db')
 
 #DB connection
 def getDb():
@@ -44,24 +47,28 @@ def viewTable():
     print(completedServices)
     conn.close()
 
-def createCategories():
-    categories = [
-        "Bathroom",
-        "Kitchen",
-        "Bedroom",
-        "Living Room",
-        "Storage",
-        "Laundry",
-        "Windows",
-        "Floors & Carpets"
-    ]
-    for category in categories:
-        description = category + " Cleaning"
-        insertServiceCategory(category, description)
-    
-if __name__ == '__main__':
+def createCategoriesFromJson(file):
+    with open(file, 'r') as file:
+        categories = json.load(file)
+
+    for item in categories:
+        category = item.get('category')
+        description = item.get('description', '')
+        if category:
+            insertServiceCategory(category, description)
+        else:
+            print("Skipping invalid item:", item)
+
+def run():
     dropTable()
     createCategoryTable()
-    createCategories()
+    createCategoriesFromJson('app/data/service_categories.json')
+    viewTable()
+    
+if __name__ == '__main__':
+    file = 'app/data/service_categories.json'
+    dropTable()
+    createCategoryTable()
+    createCategoriesFromJson(file)
     viewTable()
 

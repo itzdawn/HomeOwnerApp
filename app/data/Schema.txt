@@ -2,17 +2,19 @@
 SERVICE TABLE
 
 CREATE TABLE IF NOT EXISTS service (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,   
-        cleaner_id INTEGER NOT NULL,             
-        name TEXT NOT NULL,                      
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cleaner_id INTEGER NOT NULL,
+        category_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
         description TEXT,
-        category TEXT,                      
         price REAL,
-        shortlists INTEGER DEFAULT 0,                                                                      
-        views INTEGER DEFAULT 0,                 
+        shortlists INTEGER DEFAULT 0,
+        views INTEGER DEFAULT 0,
         creation_date TEXT NOT NULL,
-        FOREIGN KEY (cleaner_id) REFERENCES user(id)                
-        )
+        is_deleted INTEGER DEFAULT 0,  -- 0 = active, 1 = deleted
+        FOREIGN KEY (cleaner_id) REFERENCES user(id),
+        FOREIGN KEY (category_id) REFERENCES service_category(id)
+)
 ---------------------------------------------------------------------------------------------------------
 USER TABLE
 
@@ -20,7 +22,7 @@ CREATE TABLE IF NOT EXISTS user (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        role TEXT NOT NULL,
+        profile_id INTEGER NOT NULL,
         status INTEGER
         )
 ---------------------------------------------------------------------------------------------------------
@@ -53,7 +55,15 @@ SERVICE_CATEGORY TABLE
 
 CREATE TABLE IF NOT EXISTS service_category (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    service_id INTEGER NOT NULL,
-    description TEXT,
-    FOREIGN KEY (service_id) REFERENCES service(id)
+    name TEXT NOT NULL UNIQUE,
+    description TEXT
+);
+---------------------------------------------------------------------------------------------------------
+USER_PROFILE TABLE
+
+CREATE TABLE IF NOT EXISTS user_profile (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        status INTEGER
 );
