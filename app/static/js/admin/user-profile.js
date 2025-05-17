@@ -226,7 +226,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                alert('Error loading profile details: ' + error);
+                showMessage('Status', 'Failed to load profile details: ' + error, 'danger');
                 console.error("Error loading profile details:", error);
             }
         });
@@ -286,7 +286,7 @@ $(document).ready(function() {
         const phoneRegex = /^\+?[0-9\s\(\)\-]{10,20}$/;
         const phoneNumber = $('#modalPhone').val();
         if (phoneNumber && !phoneRegex.test(phoneNumber)) {
-            alert('Please enter a valid phone number');
+            showMessage('Status', 'Please enter a valid phone number', 'danger');
             $('#modalPhone').focus();
             return false;
         }
@@ -345,7 +345,7 @@ $(document).ready(function() {
                 } catch (e) {
                     errorMsg = error;
                 }
-                alert('Operation failed: ' + errorMsg);
+                showMessage('Status', 'Operation failed: ' + errorMsg, 'danger');
                 console.error("API error:", errorMsg);
             }
         });
@@ -365,6 +365,23 @@ $(document).ready(function() {
         $('#toastMessage').text(message);
         const successToast = new bootstrap.Toast(document.getElementById('successToast'));
         successToast.show();
+    }
+    
+    // Function to show message toast
+    function showMessage(title, message, type) {
+        const toast = document.getElementById('messageToast') || document.getElementById('successToast');
+        if (!toast) return;
+        
+        const toastHeader = toast.querySelector('.toast-header');
+        const toastBody = toast.querySelector('.toast-body');
+        
+        if (toastHeader) toastHeader.className = `toast-header bg-${type} text-white`;
+        if (toastHeader.querySelector('strong')) toastHeader.querySelector('strong').textContent = title;
+        
+        if (toastBody) toastBody.textContent = message;
+        
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
     }
     
     // Notify parent page that iframe content is loaded

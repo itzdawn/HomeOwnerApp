@@ -88,7 +88,7 @@ $(document).ready(function() {
             },
             error: function(xhr, status, error) {
                 console.error('Raw response:', xhr.responseText);
-                showMessage('Error', 'Failed to load profile options: ' + error, 'danger');
+                showMessage('Status', 'Failed to load profile options: ' + error, 'danger');
             }
         });
     }
@@ -112,7 +112,7 @@ $(document).ready(function() {
                 $('#accountModal').modal('show');
             },
             error: function(xhr, status, error) {
-                showMessage('Error', 'Failed to load user details: ' + getErrorMessage(xhr, error), 'danger');
+                showMessage('Status', 'Failed to load user details: ' + getErrorMessage(xhr, error), 'danger');
             }
         });
     }
@@ -141,7 +141,7 @@ $(document).ready(function() {
                 $('#viewAccountID').text('-');
                 $('#viewProfile').text('-');
                 $('#viewStatus').text('-');
-                showMessage('Error', 'Failed to load user details: ' + getErrorMessage(xhr, error), 'danger');
+                showMessage('Status', 'Failed to load user details: ' + getErrorMessage(xhr, error), 'danger');
             }
         });
     }
@@ -269,12 +269,12 @@ $(document).ready(function() {
         const profile = $('#modalUserProfile').val();
         const status = $('#modalStatus').val();
 
-        if (!username) return showMessage('Error', 'Username is required', 'danger');
-        if (!profile) return showMessage('Error', 'Profile is required', 'danger');
+        if (!username) return showMessage('Status', 'Username is required', 'danger');
+        if (!profile) return showMessage('Status', 'Profile is required', 'danger');
 
         if (mode === 'create') {
-            if (!password) return showMessage('Error', 'Password is required for new accounts', 'danger');
-            if (password !== confirmPassword) return showMessage('Error', 'Passwords do not match', 'danger');
+            if (!password) return showMessage('Status', 'Password is required for new accounts', 'danger');
+            if (password !== confirmPassword) return showMessage('Status', 'Passwords do not match', 'danger');
         }
 
         let userData = {
@@ -288,7 +288,7 @@ $(document).ready(function() {
         let apiUrl = mode === 'create' ? API_ENDPOINTS.CREATE_USER : API_ENDPOINTS.UPDATE_USER + userId;
         let method = mode === 'create' ? 'POST' : 'PUT';
 
-        $('#saveAccountBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" profile="status" aria-hidden="true"></span> Saving...');
+        $('#saveAccountBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
 
         $.ajax({
             url: apiUrl,
@@ -297,17 +297,17 @@ $(document).ready(function() {
             data: JSON.stringify(userData),
             dataType: 'json',
             success: function(response) {
-                $('#accountModal').modal('hide');
+                const accountModal = bootstrap.Modal.getInstance(document.getElementById('accountModal'));
+                accountModal.hide();
                 showSuccessToast(mode === 'create' ? 'Account created successfully!' : 'Account updated successfully!');
                 loadUsers();
                 if (mode === 'edit') {
                     const userId = $('#userId').val();
-                    loadUserDetails(userId);      
-                    loadUserDetailsForView(userId); 
+                    loadUserDetailsForView(userId);
                 }
             },
             error: function(xhr, status, error) {
-                showMessage('Error', 'Operation failed: ' + getErrorMessage(xhr, error), 'danger');
+                showMessage('Status', 'Operation failed: ' + getErrorMessage(xhr, error), 'danger');
             },
             complete: function() {
                 $('#saveAccountBtn').prop('disabled', false).html('Save');
