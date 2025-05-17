@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Reports</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Include flatpickr CSS for date picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../static/css/service-mgnt.css">
+    <style>
+        .report-options .card {margin-bottom: 1rem;}
+        #report-results {margin-top: 2rem;}
+        #report-table th {background-color: #e9ecef;}
+        .chart-container {width: 100%; min-height: 300px; margin-bottom: 2rem; position: relative;}
+        .chart-container canvas {width: 100% !important; height: 300px !important;}
+        html, body {height: 100%; overflow-x: hidden; overflow-y: auto;}
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <h4>Generate Service Usage Reports</h4>
+        <hr>
+
+        <!-- Report Options -->
+        <div class="report-options">
+            <form id="reportForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="reportType" class="form-label">Report Type</label>
+                        <select class="form-select" id="reportType">
+                            <option value="daily">Daily Summary</option>
+                            <option value="weekly">Weekly Summary</option>
+                            <option value="monthly">Monthly Summary</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="reportDate" class="form-label">Select Date / Range</label>
+                        <input type="text" class="form-control" id="reportDate" placeholder="Select date or range">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="groupBy" class="form-label">Group By</label>
+                        <select class="form-select" id="groupBy">
+                            <option value="category">Category</option>
+                            <option value="service">Service</option>
+                            <option value="cleaner">Cleaner</option>
+                            <option value="homeowner">Home Owner</option>   
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary w-100" id="generateReportBtn">
+                            <i class="bi bi-bar-chart-line"></i> Generate
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Report Results Area -->
+        <div id="report-results" class="mt-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 id="report-title">Report Results</h5>
+            </div>
+            
+            <div id="report-placeholder" class="text-center text-muted p-5 border rounded">
+                <p>Select report options and click "Generate" to view results.</p>
+            </div>
+            
+            <!-- Chart will be shown here -->
+            <div class="chart-container d-none mt-3">
+                <canvas id="reportChart"></canvas>
+            </div>
+            
+            <!-- Table will be populated dynamically -->
+            <div class="table-container d-none mt-3" id="report-table-container">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="report-table">
+                        <thead>
+                            <!-- Table headers generated dynamically -->
+                        </thead>
+                        <tbody>
+                            <!-- Table rows generated dynamically -->
+                        </tbody>
+                        <tfoot>
+                            <!-- Optional Totals Row -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- flatpickr JS for date picker -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script src="../../static/js/platform/reports.js"></script>
+</body>
+</html>

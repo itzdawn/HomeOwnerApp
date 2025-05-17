@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Service History</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Include flatpickr CSS for date range picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../static/css/service-mgnt.css">
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <!-- Filter Section -->
+        <div class="search-section">
+            <form id="filterForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="serviceName" class="form-label">Service Name</label>
+                        <input type="text" class="form-control" id="serviceName" placeholder="Filter by name" autocomplete='off'>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="dateRange" class="form-label">Date Range</label>
+                        <input type="text" class="form-control" id="dateRange" placeholder="Select date range">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="categorySelect" class="form-label">Category</label>
+                        <select class="form-select" id="categorySelect">
+                            <option value="">All Categories</option>
+                            <!-- Categories will be loaded dynamically -->
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary w-100" id="filterBtn">
+                            <i class="bi bi-funnel"></i> Search
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" id="resetBtn">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Service History Table -->
+        <div class="table-container mt-4">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th width="20%">Service Name</th>
+                        <th width="15%">Category</th>
+                        <th width="15%">Cleaner</th>
+                        <th width="15%" class="text-center">Date Completed</th>
+                        <th width="10%" class="text-center">Price Paid</th>
+                        <th width="25%" class="text-center">Operations</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- Table content will be loaded dynamically -->
+                    <tr>
+                        <td colspan="6" class="text-center">Loading service history...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <div class="text-muted" id="total-history">
+                    Total of 0 service records found
+                </div>
+                <nav>
+                    <ul class="pagination" id="pagination">
+                        <!-- Pagination links will be generated dynamically -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- View History Details Modal -->
+    <div class="modal fade" id="viewHistoryModal" tabindex="-1" aria-labelledby="viewHistoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewHistoryModalLabel">Service History Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Service Information</h6>
+                            <p><strong>Service Name:</strong> <span id="viewServiceName"></span></p>
+                            <p><strong>Category:</strong> <span id="viewCategory"></span></p>
+                            <p><strong>Description:</strong> <span id="viewDescription"></span></p>
+                            <p><strong>Price Paid:</strong> $<span id="viewPrice"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Booking & Cleaner Details</h6>
+                            <p><strong>Date Completed:</strong> <span id="viewDateCompleted"></span></p>
+                            <p><strong>Cleaner Name:</strong> <span id="viewCleanerName"></span></p>
+                        </div>
+                    </div>
+                    <hr>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Success/Error Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="messageToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi me-2"></i>
+                <strong class="me-auto">Status</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Operation message.
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- flatpickr JS for date range picker -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Custom JS -->
+    <script src="../../static/js/homeowner/service-history.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cleaner Service Management</title>
+    <title>Platform Management</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,48 +16,49 @@
     <!-- Layout Structure -->
     <div class="container-fluid p-0">
         <div class="row g-0">
-            <!-- Sidebar - Will be loaded dynamically -->
+            <!-- Sidebar - Load Platform Sidebar -->
             <div class="col-auto sidebar" id="sidebar">
                 <div id="sidebar-placeholder"></div>
             </div>
-            
+
             <!-- Main Content Area -->
             <div class="col main-content">
-                <!-- Top Navbar - Will be loaded dynamically -->
+                <!-- Top Navbar - Load General Navbar -->
                 <div id="navbar-placeholder"></div>
-                
+
                 <!-- Breadcrumb -->
                 <div class="breadcrumb-container">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="#">Home</a></li>
-                            <li class="breadcrumb-item"><a href="#">Service Management</a></li>
-                            <li class="breadcrumb-item active" id="current-section">My Services</li>
+                            <li class="breadcrumb-item"><a href="#">Service Config</a></li>
+                            <li class="breadcrumb-item active" id="current-section">Service Categories</li>
                         </ol>
                     </nav>
                 </div>
-                
+
                 <!-- Tab Navigation -->
                 <div class="container-fluid px-4">
                     <ul class="nav nav-tabs" id="contentTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="services-tab" data-bs-toggle="tab" data-bs-target="#services-content" type="button" role="tab" aria-controls="services-content" aria-selected="true">My Services</button>
+                            <button class="nav-link active" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-content" type="button" role="tab" aria-controls="categories-content" aria-selected="true">Service Categories</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-content" type="button" role="tab" aria-controls="history-content" aria-selected="false">Service History</button>
+                            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports-content" type="button" role="tab" aria-controls="reports-content" aria-selected="false">Reports</button>
                         </li>
+                        <!-- Add more tabs for other platform management sections if needed -->
                     </ul>
-                    
+
                     <!-- Tab Content -->
                     <div class="tab-content pt-3" id="contentTabsContent">
-                        <!-- Services Tab -->
-                        <div class="tab-pane fade show active" id="services-content" role="tabpanel" aria-labelledby="services-tab">
-                            <iframe src="/cleaner/service-management" id="service-mgnt-frame" title="Service Management" scrolling="no"></iframe>
+                        <!-- Service Categories Tab -->
+                        <div class="tab-pane fade show active" id="categories-content" role="tabpanel" aria-labelledby="categories-tab">
+                            <iframe src="/platform/service-categories" id="categories-frame" title="Service Categories Management" scrolling="no"></iframe>
                         </div>
-                        
-                        <!-- Service History Tab -->
-                        <div class="tab-pane fade" id="history-content" role="tabpanel" aria-labelledby="history-tab">
-                            <iframe src="/cleaner/service-history" id="service-history-frame" title="Service History" scrolling="no"></iframe>
+
+                        <!-- Reports Tab -->
+                        <div class="tab-pane fade" id="reports-content" role="tabpanel" aria-labelledby="reports-tab">
+                            <iframe src="/platform/reports" id="reports-frame" title="Reports" scrolling="no"></iframe>
                         </div>
                     </div>
                 </div>
@@ -67,13 +68,13 @@
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <!-- Custom JavaScript -->
     <script src="../../static/js/layout.js"></script>
-    
+
     <script>
         // Load partials using jQuery
         $(document).ready(function() {
@@ -88,6 +89,7 @@
                 }
             });
             
+            // Load Platform Sidebar
             $("#sidebar-placeholder").load("/partials/sidebar", function(response, status) {
                 if (status === "error") {
                     console.error("Failed to load Sidebar. Retrying...");
@@ -106,6 +108,12 @@
                 // Update breadcrumb
                 const tabText = $(this).text();
                 $('#current-section').text(tabText);
+                // Update breadcrumb parent category if needed
+                if (['Service Categories'].includes(tabText)) {
+                    $('.breadcrumb-item:nth-child(2) a').text('Service Config');
+                } else if (tabText === 'Reports') {
+                    $('.breadcrumb-item:nth-child(2) a').text('Analytics'); // Or just 'Platform'
+                }
             });
             
             // Handle sidebar menu item clicks - delegated to handle dynamically loaded content
@@ -118,34 +126,44 @@
                 
                 const target = $(this).data('target');
                 
-                // Activate corresponding tab
-                if (target === 'services') {
-                    $('#services-tab').tab('show');
-                    $('#current-section').text('My Services');
-                } else if (target === 'history') {
-                    $('#history-tab').tab('show');
-                    $('#current-section').text('Service History');
+                // Activate corresponding tab and update breadcrumb
+                if (target === 'categories') {
+                    $('#categories-tab').tab('show');
+                    $('#current-section').text('Service Categories');
+                    $('.breadcrumb-item:nth-child(2) a').text('Service Config');
+                } else if (target === 'reports') {
+                    $('#reports-tab').tab('show');
+                    $('#current-section').text('Reports');
+                    $('.breadcrumb-item:nth-child(2) a').text('Analytics'); // Or just 'Platform'
                 }
+                // Trigger resize after tab change
+                setTimeout(resizeIframes, 100);
             });
             
             // Ensure iframes resize correctly
             function resizeIframes() {
-                const height = window.innerHeight - 150;
-                $('#service-mgnt-frame, #service-history-frame').height(height);
+                const mainContentHeight = $('.main-content').height();
+                const breadcrumbHeight = $('.breadcrumb-container').outerHeight(true) || 0;
+                const tabsHeight = $('#contentTabs').outerHeight(true) || 0;
+                const padding = 40;
+                const availableHeight = mainContentHeight - breadcrumbHeight - tabsHeight - padding;
+                const minHeight = 500;
+                const height = Math.max(minHeight, availableHeight);
+                
+                $('#categories-frame, #reports-frame').height(height);
             }
             
-            // Initial resize and on window resize
+            // Initial resize, on window resize, and after delay
             resizeIframes();
             $(window).resize(resizeIframes);
+            setTimeout(resizeIframes, 200);
             
-            // Listen for messages from iframes
+            // Iframe communication listener
             window.addEventListener('message', function(event) {
-                if (event.data && event.data.type === 'iframeLoaded') {
-                    // Adjust the height of the iframe that sent the message
-                    const frameHeight = event.data.height || 500;
-                    if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
-                        $(document.activeElement).height(frameHeight + 50);
-                    }
+                if (event.data && event.data.type === 'iframeLoaded' && event.data.height) {
+                    $('iframe').filter(function() {
+                        return this.contentWindow === event.source;
+                    }).height(event.data.height + 50);
                 }
             }, false);
         });

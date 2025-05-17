@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cleaner-Homeowner Platform</title>
-    
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     
@@ -50,7 +50,6 @@
                                     id="username" 
                                     name="username" 
                                     placeholder="Username" 
-                                    value="admin" 
                                     required
                                 >
                             </div>
@@ -69,23 +68,22 @@
                                     id="password" 
                                     name="password" 
                                     placeholder="Password" 
-                                    value="admin123" 
                                     required
                                 >
                             </div>
                             <div class="invalid-feedback">Please enter your password</div>
                         </div>
                         
-                        <!-- Role Selection -->
+                        <!-- Profile Selection -->
                         <div class="mb-3">
-                            <select class="form-select" id="role" name="role" required>
-                                <option value="" disabled>Select Role</option>
+                            <select class="form-select" id="profile" name="profile" required>
+                                <option value="" disabled>Select Profile</option>
                                 <option value="Admin">Admin</option>
                                 <option value="Cleaner">Cleaner</option>
                                 <option value="HomeOwner">Home Owner</option>
                                 <option value="PlatformManagement">Platform Management</option>
                             </select>
-                            <div class="invalid-feedback">Please select a role</div>
+                            <div class="invalid-feedback">Please select your profile</div>
                         </div>
                         
                         <!-- Verification Code (hidden by default) -->
@@ -118,7 +116,7 @@
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary w-100" id="loginBtn">Login</button>
                             <button class="btn btn-primary w-100 d-none" type="button" id="loadingBtn" disabled>
-                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span class="spinner-border spinner-border-sm me-2" profile="status" aria-hidden="true"></span>
                                 Logging in...
                             </button>
                         </div>
@@ -143,11 +141,14 @@
             $('#loadingBtn').removeClass('d-none');
             $('#errorAlert').addClass('d-none');
             
+            // Clear any previous session data
+            localStorage.clear();
+            
             // Get form data
             const formData = {
                 username: $('#username').val(),
                 password: $('#password').val(),
-                role: $('#role').val()
+                profile: $('#profile').val()
             };
             
             // Send login request to backend
@@ -156,22 +157,22 @@
                 url: '/auth/login',
                 data: formData,
                 success: function(response) {
-                    // Store user role for session persistence
-                    localStorage.setItem('userRole', response.role);
+                    // Store user profile for session persistence
+                    localStorage.setItem('userProfile', response.profile);
                     localStorage.setItem('username', response.username);
+                    localStorage.setItem('userId', response.userId);
                     
-                    // Handle different roles based on backend response
-                    const role = response.role.toLowerCase();
+                    // Handle different profiles based on backend response
+                    const profile = response.profile;
                     
-                    if (role === 'admin') {
+                    if (profile === 'Admin') {
                         window.location.href = '/admin/dashboard';
-                    } else if (role === 'cleaner') {
+                    } else if (profile === 'Cleaner') {
                         window.location.href = '/cleaner/dashboard';
-                    } else if (role === 'homeowner') {
+                    } else if (profile === 'HomeOwner') {
                         window.location.href = '/homeowner/dashboard';
-                    } else if (role === 'platform') {
+                    } else if (profile === 'PlatformManagement') {
                         window.location.href = '/platform/dashboard';
-                      
                     }
                 },
                 error: function(xhr, status, error) {
