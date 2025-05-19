@@ -110,7 +110,6 @@ class User:
     
 
     
-    @staticmethod
     def authenticate(username, password):
         try:
             conn = getDb()
@@ -126,13 +125,18 @@ class User:
             row = cursor.fetchone()
             conn.close()
 
-            if row and row["status"] == 1:
-                return {"success": True, "message": "Authentication successful"}
-            return {"success": False, "message": "Account is suspended"}
+            if not row:
+                return {"success": False, "message": "Invalid username or password"}
+
+            if row["status"] == 0:
+                return {"success": False, "message": "Account is suspended"}
+
+            return {"success": True, "message": "Authentication successful"}
 
         except Exception as e:
             print(f"[User.authenticate] Error: {e}")
             return {"success": False, "message": "Unexpected error occurred during authentication"}
+
     @staticmethod  
     def getAllUsers():
         try:
